@@ -30,6 +30,22 @@
             </form>
         </div>
 
+        <!-- Add New Item Form -->
+        <div class="card p-4 shadow-sm mb-4">
+            <h3 class="text-center mb-3">Add New Item</h3>
+            <form id="addItemForm" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" name="item" placeholder="Item Name" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" class="form-control" name="stock" placeholder="Initial Stock" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-success w-100">Add</button>
+                </div>
+            </form>
+        </div>
+
         <!-- Stock Table -->
         <div class="table-responsive shadow-sm">
             <h3 class="text-center mb-3">Current Stock</h3>
@@ -63,17 +79,19 @@
             <button id="downloadEmployeeButton" class="btn btn-warning">Download Employee Report</button>
         </div>
 
-        <!-- Charts -->
+        <!-- Most Used Items Chart -->
         <div class="mt-5">
             <h3 class="text-center mb-3">Most Used Items</h3>
             <canvas id="mostUsedChart"></canvas>
         </div>
 
+        <!-- Usage Trends Chart -->
         <div class="mt-5">
             <h3 class="text-center mb-3">Usage Trends Over Time</h3>
             <canvas id="usageTrendsChart"></canvas>
         </div>
 
+        <!-- Employee Usage Chart -->
         <div class="mt-5">
             <h3 class="text-center mb-3">Employee Usage</h3>
             <canvas id="employeeUsageChart"></canvas>
@@ -88,6 +106,24 @@
             const formData = new FormData(this);
 
             fetch('/log', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    location.reload(); // Reload the page to update the table
+                }
+            });
+        });
+
+        // Add New Item Form Submission
+        document.getElementById('addItemForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('/add-item', {
                 method: 'POST',
                 body: formData
             })
@@ -169,6 +205,21 @@
                     options: { responsive: true, scales: { y: { beginAtZero: true } } }
                 });
             });
+
+        // Download Log Button
+        document.getElementById('downloadLogButton').addEventListener('click', function () {
+            window.location.href = '/download-log';
+        });
+
+        // Download Most Used Report Button
+        document.getElementById('downloadMostUsedButton').addEventListener('click', function () {
+            window.location.href = '/report/most-used/download';
+        });
+
+        // Download Employee Report Button
+        document.getElementById('downloadEmployeeButton').addEventListener('click', function () {
+            window.location.href = '/report/employee-contributions/download';
+        });
     </script>
 </body>
 </html>

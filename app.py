@@ -127,6 +127,34 @@ def download_employee_contributions():
     return jsonify({"success": False, "message": "Log file not found."})
 
 
+@app.route("/add-item", methods=["POST"])
+def add_item():
+    """Add a new item to the inventory."""
+    item_name = request.form.get("item")
+    stock = int(request.form.get("stock"))
+
+    if os.path.exists(STOCK_FILE):
+        # Load the existing stock data
+        df = pd.read_excel(STOCK_FILE)
+
+        # Check if the item already exists
+        if item_name in df["Item"].values:
+            return jsonify({"success": False, "message": f"Item '{item_name}' already exists."})
+
+        # Add the new item
+        new_item = pd.DataFrame([{
+            "Item": item_name,
+            "Stock": stock,
+            "Used": 0,
+            "Remaining": stock
+        }])
+        df = pd.concat([df, new_item], ignore_index=True)
+        df.to_excel(STOCK_FILE, index=False)
+        return jsonify({"success": True, "message": f"Item '{item_name}' added with stock {stock}."})
+
+    return jsonify({"success": False, "message": "Stock file not found."})
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host="0.0.0.0", port=port)
