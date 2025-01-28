@@ -5,131 +5,170 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Tracker</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
     <div class="container mt-4">
-        <h1 class="text-center">Stock Management System</h1>
+        <h1 class="text-center mb-4">Inventory Tracker</h1>
 
-        <div class="container mt-4">
-    <h1 class="text-center">Inventory Tracker</h1>
+        <!-- Log Usage Form -->
+        <div class="card p-4 shadow-sm mb-4">
+            <h3 class="text-center mb-3">Log Item Usage</h3>
+            <form id="logForm" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="item" placeholder="Item Name" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" class="form-control" name="quantity" placeholder="Quantity Used" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="user" placeholder="Your Name" required>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">Log</button>
+                </div>
+            </form>
+        </div>
 
-    <div class="table-responsive mt-4">
-        <table class="table table-striped table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Item</th>
-                    <th>Stock</th>
-                    <th>Used</th>
-                    <th>Remaining</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in data %}
-                <tr>
-                    <td>{{ row['Item'] }}</td>
-                    <td>{{ row['Stock'] }}</td>
-                    <td>{{ row['Used'] }}</td>
-                    <td>{{ row['Remaining'] }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Stock Table -->
+        <div class="table-responsive shadow-sm">
+            <h3 class="text-center mb-3">Current Stock</h3>
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Item</th>
+                        <th>Stock</th>
+                        <th>Used</th>
+                        <th>Remaining</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row['Item'] }}</td>
+                        <td>{{ row['Stock'] }}</td>
+                        <td>{{ row['Used'] }}</td>
+                        <td>{{ row['Remaining'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-center mt-4 flex-wrap gap-3">
+            <button id="exportButton" class="btn btn-success">Export Stock Data</button>
+            <button id="downloadLogButton" class="btn btn-info">Download Log</button>
+            <button id="downloadMostUsedButton" class="btn btn-secondary">Download Most Used Report</button>
+            <button id="downloadEmployeeButton" class="btn btn-warning">Download Employee Report</button>
+        </div>
+
+        <!-- Charts -->
+        <div class="mt-5">
+            <h3 class="text-center mb-3">Most Used Items</h3>
+            <canvas id="mostUsedChart"></canvas>
+        </div>
+
+        <div class="mt-5">
+            <h3 class="text-center mb-3">Usage Trends Over Time</h3>
+            <canvas id="usageTrendsChart"></canvas>
+        </div>
+
+        <div class="mt-5">
+            <h3 class="text-center mb-3">Employee Usage</h3>
+            <canvas id="employeeUsageChart"></canvas>
+        </div>
     </div>
-</div>
 
-
-        <div class="container mt-4">
-    <form id="logForm" class="row g-3">
-        <div class="col-md-4">
-            <input type="text" class="form-control" name="item" placeholder="Item Name" required>
-        </div>
-        <div class="col-md-3">
-            <input type="number" class="form-control" name="quantity" placeholder="Quantity Used" required>
-        </div>
-        <div class="col-md-4">
-            <input type="text" class="form-control" name="user" placeholder="Your Name" required>
-        </div>
-        <div class="col-md-1">
-            <button type="submit" class="btn btn-primary w-100">Log</button>
-        </div>
-    </form>
-</div>
-<div class="container mt-4">
-    <div class="d-flex justify-content-around flex-wrap gap-3">
-        <button id="exportButton" class="btn btn-success">Export Stock Data</button>
-        <button id="downloadLogButton" class="btn btn-info">Download Log</button>
-        <button id="mostUsedReportButton" class="btn btn-secondary">Most Used Items</button>
-        <button id="usageTrendsButton" class="btn btn-warning">Usage Trends</button>
-        <button id="employeeContributionsButton" class="btn btn-info">Show Employee Contributions</button>
-    </div>
-</div>
+    <!-- Scripts -->
     <script>
-        document.getElementById("logForm").addEventListener("submit", function (e) {
+        // Log Usage Form Submission
+        document.getElementById('logForm').addEventListener('submit', function (e) {
             e.preventDefault();
-
             const formData = new FormData(this);
 
-            fetch("/log", {
-                method: "POST",
-                body: formData,
+            fetch('/log', {
+                method: 'POST',
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
                 if (data.success) {
-                    location.reload();
+                    location.reload(); // Reload the page to update the table
                 }
             });
         });
 
-        document.getElementById("exportButton").addEventListener("click", function () {
-            window.location.href = "/export";
-        });
-
-        document.getElementById("downloadLogButton").addEventListener("click", function () {
-            window.location.href = "/download-log";
-        });
-
-        document.getElementById("mostUsedReportButton").addEventListener("click", function () {
-            fetch("/report/most-used")
+        // Fetch Most Used Items Chart
+        fetch('/report/most-used')
             .then(response => response.json())
             .then(data => {
-                let report = "Most Used Items:\n";
-                for (const [item, quantity] of Object.entries(data)) {
-                    report += `${item}: ${quantity} units\n`;
-                }
-                alert(report);
-            });
-        });
+                const labels = Object.keys(data);
+                const values = Object.values(data);
 
-        document.getElementById("usageTrendsButton").addEventListener("click", function () {
-            fetch("/report/usage-trends")
+                new Chart(document.getElementById('mostUsedChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Most Used Items',
+                            data: values,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+            });
+
+        // Fetch Usage Trends Chart
+        fetch('/report/usage-trends')
             .then(response => response.json())
             .then(data => {
-                let report = "Usage Trends:\n";
-                for (const [date, items] of Object.entries(data)) {
-                    report += `Date: ${date}\n`;
-                    for (const [item, quantity] of Object.entries(items)) {
-                        report += `  ${item}: ${quantity} units\n`;
-                    }
-                }
-                alert(report);
-            });
-        });
+                const dates = Object.keys(data);
+                const items = Object.keys(data[dates[0]]);
+                const datasets = items.map(item => ({
+                    label: item,
+                    data: dates.map(date => data[date][item] || 0),
+                    borderColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 1)`,
+                    borderWidth: 2,
+                    fill: false
+                }));
 
-        document.getElementById("employeeContributionsButton").addEventListener("click", function () {
-            fetch("/report/employee-contributions")
+                new Chart(document.getElementById('usageTrendsChart').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: datasets
+                    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+            });
+
+        // Fetch Employee Contributions Chart
+        fetch('/report/employee-contributions')
             .then(response => response.json())
             .then(data => {
-                let report = "Employee Contributions:\n";
-                for (const [user, quantity] of Object.entries(data)) {
-                    report += `${user}: ${quantity} units\n`;
-                }
-                alert(report);
+                const labels = Object.keys(data);
+                const values = Object.values(data);
+
+                new Chart(document.getElementById('employeeUsageChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total Items Used by Employee',
+                            data: values,
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
             });
-        });
     </script>
 </body>
 </html>
