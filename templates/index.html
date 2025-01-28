@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Management</title>
+    <title>Inventory Tracker</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
+
 <body>
     <div class="container mt-4">
         <h1 class="text-center">Stock Management System</h1>
 
-        <table class="table table-striped mt-4">
-            <thead>
+        <div class="container mt-4">
+    <h1 class="text-center">Inventory Tracker</h1>
+
+    <div class="table-responsive mt-4">
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
                 <tr>
                     <th>Item</th>
                     <th>Stock</th>
@@ -30,31 +36,35 @@
                 {% endfor %}
             </tbody>
         </table>
-
-        <form id="logForm" class="mt-4">
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <input type="text" class="form-control" name="user" placeholder="Your Name" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <input type="text" class="form-control" name="item" placeholder="Item Name" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <input type="number" class="form-control" name="quantity" placeholder="Quantity Used" required>
-                </div>
-                <div class="col-md-2 mb-3">
-                    <button type="submit" class="btn btn-primary w-100">Log Usage</button>
-                </div>
-            </div>
-        </form>
-
-        <button id="exportButton" class="btn btn-success mt-3">Export Stock Data</button>
-        <button id="downloadLogButton" class="btn btn-info mt-3">Download Inventory Log</button>
-        <button id="mostUsedReportButton" class="btn btn-secondary mt-3">Show Most Used Items</button>
-        <button id="usageTrendsButton" class="btn btn-warning mt-3">Show Usage Trends</button>
-        <button id="employeeContributionsButton" class="btn btn-dark mt-3">Show Employee Contributions</button>
     </div>
+</div>
 
+
+        <div class="container mt-4">
+    <form id="logForm" class="row g-3">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="item" placeholder="Item Name" required>
+        </div>
+        <div class="col-md-3">
+            <input type="number" class="form-control" name="quantity" placeholder="Quantity Used" required>
+        </div>
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="user" placeholder="Your Name" required>
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100">Log</button>
+        </div>
+    </form>
+</div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-around">
+        <button id="exportButton" class="btn btn-success">Export Stock Data</button>
+        <button id="downloadLogButton" class="btn btn-info">Download Log</button>
+        <button id="mostUsedReportButton" class="btn btn-secondary">Most Used Items</button>
+        <button id="usageTrendsButton" class="btn btn-warning">Usage Trends</button>
+        <button id="employeeContributionsButton" class="btn btn-warning">Show Employee Contributions</button>
+    </div>
+</div>
     <script>
         document.getElementById("logForm").addEventListener("submit", function (e) {
             e.preventDefault();
