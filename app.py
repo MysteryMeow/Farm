@@ -1,9 +1,35 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_file
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import pandas as pd
 import os
 from datetime import datetime
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"
+
+# Flask-Login setup
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+# User model (in-memory for simplicity)
+users = {
+    "admin": {"password": "admin123", "role": "Admin"},
+    "employee1": {"password": "password1", "role": "Employee"},
+    "employee2": {"password": "password2", "role": "Employee"},
+    "ron":{"password":"ron","role":"Admin",}
+}
+
+class User(UserMixin):
+    def __init__(self, username, role):
+        self.id = username
+        self.role = role
+
+@login_manager.user_loader
+def load_user(username):
+    if username in users:
+        return User(username, users[username]["role"])
+    return None
 
 # File paths
 STOCK_FILE = "stock_data.xlsx"
@@ -39,17 +65,41 @@ def log_change(item_name, quantity_used, user):
     log_df = pd.concat([log_df, log_entry], ignore_index=True)
     log_df.to_excel(LOG_FILE, index=False)
 
+# Routes
 @app.route("/")
+@login_required
 def index():
     initialize_stock()
     df = pd.read_excel(STOCK_FILE)
-    return render_template("index.html", data=df.to_dict(orient="records"))
+    return render_template("index.html", data=df.to_dict(orient="records"), role=current_user.role)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username in users and users[username]["password"] == password:
+            user = User(username, users[username]["role"])
+            login_user(user)
+            flash("Login successful!", "success")
+            return redirect(url_for("index"))
+        flash("Invalid username or password.", "danger")
+    return render_template("login.html")
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("You have been logged out.", "info")
+    return redirect(url_for("login"))
 
 @app.route("/log", methods=["POST"])
+@login_required
 def log_usage():
     item_name = request.form.get("item")
     quantity_used = int(request.form.get("quantity"))
-    user = request.form.get("user", "Unknown User")
+    user = current_user.id
 
     if os.path.exists(STOCK_FILE):
         df = pd.read_excel(STOCK_FILE)
@@ -63,85 +113,16 @@ def log_usage():
             return jsonify({"success": False, "message": f"Item '{item_name}' not found."})
     return jsonify({"success": False, "message": "Stock file not found."})
 
-@app.route("/export", methods=["GET"])
-def export_data():
-    if os.path.exists(STOCK_FILE):
-        return send_file(STOCK_FILE, as_attachment=True)
-    return jsonify({"success": False, "message": "Stock file not found."})
-
-@app.route("/download-log", methods=["GET"])
-def download_log():
-    if os.path.exists(LOG_FILE):
-        return send_file(LOG_FILE, as_attachment=True)
-    return jsonify({"success": False, "message": "Log file not found."})
-
-@app.route("/report/most-used", methods=["GET"])
-def most_used_items():
-    if os.path.exists(LOG_FILE):
-        log_df = pd.read_excel(LOG_FILE)
-        if "Quantity Used" in log_df.columns:
-            report = log_df.groupby("Item")["Quantity Used"].sum().sort_values(ascending=False)
-            return jsonify(report.to_dict())
-    return jsonify({"success": False, "message": "Log file not found."})
-
-@app.route("/report/most-used/download", methods=["GET"])
-def download_most_used_items():
-    if os.path.exists(LOG_FILE):
-        log_df = pd.read_excel(LOG_FILE)
-        if "Quantity Used" in log_df.columns:
-            report = log_df.groupby("Item")["Quantity Used"].sum().sort_values(ascending=False)
-            report_df = report.reset_index()
-            report_file = "most_used_items.xlsx"
-            report_df.to_excel(report_file, index=False)
-            return send_file(report_file, as_attachment=True)
-    return jsonify({"success": False, "message": "Log file not found."})
-
-@app.route("/report/usage-trends", methods=["GET"])
-def usage_trends():
-    if os.path.exists(LOG_FILE):
-        log_df = pd.read_excel(LOG_FILE)
-        log_df["Timestamp"] = pd.to_datetime(log_df["Timestamp"])
-        trends = log_df.groupby([log_df["Timestamp"].dt.date, "Item"])["Quantity Used"].sum().unstack(fill_value=0)
-        trends.index = trends.index.astype(str)
-        return jsonify(trends.to_dict(orient="index"))
-    return jsonify({"success": False, "message": "Log file not found."})
-@app.route("/report/employee-contributions", methods=["GET"])
-def employee_contributions():
-    """Generate a report of usage by employee."""
-    if os.path.exists(LOG_FILE):
-        log_df = pd.read_excel(LOG_FILE)
-        contributions = log_df.groupby("User")["Quantity Used"].sum().sort_values(ascending=False)
-        return jsonify(contributions.to_dict())
-    return jsonify({"success": False, "message": "Log file not found."})
-
-@app.route("/report/employee-contributions/download", methods=["GET"])
-def download_employee_contributions():
-    """Download the employee contributions as an Excel report."""
-    if os.path.exists(LOG_FILE):
-        log_df = pd.read_excel(LOG_FILE)
-        contributions = log_df.groupby("User")["Quantity Used"].sum().sort_values(ascending=False)
-        contributions_df = contributions.reset_index()
-        report_file = "employee_contributions.xlsx"
-        contributions_df.to_excel(report_file, index=False)
-        return send_file(report_file, as_attachment=True)
-    return jsonify({"success": False, "message": "Log file not found."})
-
-
 @app.route("/add-item", methods=["POST"])
+@login_required
 def add_item():
-    """Add a new item to the inventory."""
     item_name = request.form.get("item")
     stock = int(request.form.get("stock"))
 
     if os.path.exists(STOCK_FILE):
-        # Load the existing stock data
         df = pd.read_excel(STOCK_FILE)
-
-        # Check if the item already exists
         if item_name in df["Item"].values:
             return jsonify({"success": False, "message": f"Item '{item_name}' already exists."})
-
-        # Add the new item
         new_item = pd.DataFrame([{
             "Item": item_name,
             "Stock": stock,
@@ -151,8 +132,77 @@ def add_item():
         df = pd.concat([df, new_item], ignore_index=True)
         df.to_excel(STOCK_FILE, index=False)
         return jsonify({"success": True, "message": f"Item '{item_name}' added with stock {stock}."})
-
     return jsonify({"success": False, "message": "Stock file not found."})
+
+@app.route("/export", methods=["GET"])
+@login_required
+def export_data():
+    if current_user.role != "Admin":
+        return jsonify({"success": False, "message": "You do not have permission to export data."})
+    if os.path.exists(STOCK_FILE):
+        return send_file(STOCK_FILE, as_attachment=True)
+    return jsonify({"success": False, "message": "Stock file not found."})
+
+@app.route("/download-log", methods=["GET"])
+@login_required
+def download_log():
+    if current_user.role != "Admin":
+        return jsonify({"success": False, "message": "You do not have permission to download logs."})
+    if os.path.exists(LOG_FILE):
+        return send_file(LOG_FILE, as_attachment=True)
+    return jsonify({"success": False, "message": "Log file not found."})
+@app.route("/report/most-used", methods=["GET"])
+@login_required
+def most_used_items():
+    """Return most used items data."""
+    if os.path.exists(LOG_FILE):
+        log_df = pd.read_excel(LOG_FILE)
+        if not log_df.empty and "Quantity Used" in log_df.columns:
+            report = log_df.groupby("Item")["Quantity Used"].sum().to_dict()
+            return jsonify(report)
+    return jsonify({})
+
+@app.route("/report/usage-trends", methods=["GET"])
+@login_required
+def usage_trends():
+    """Return item usage trends over time."""
+    try:
+        if os.path.exists(LOG_FILE):
+            log_df = pd.read_excel(LOG_FILE)
+
+            # Ensure LOG_FILE is not empty and contains required columns
+            if not log_df.empty and "Timestamp" in log_df.columns and "Item" in log_df.columns and "Quantity Used" in log_df.columns:
+                # Convert Timestamp to datetime and ensure valid format
+                log_df["Timestamp"] = pd.to_datetime(log_df["Timestamp"], errors='coerce')
+                log_df = log_df.dropna(subset=["Timestamp"])  # Drop rows with invalid timestamps
+
+                # Group by date and item, summing up the quantity used
+                grouped = log_df.groupby([log_df["Timestamp"].dt.date, "Item"])["Quantity Used"].sum().unstack(fill_value=0)
+
+                # Convert the grouped DataFrame to a dictionary with string dates as keys
+                trends = grouped.transpose().to_dict()
+                trends_str_keys = {str(k): v for k, v in trends.items()}
+
+                return jsonify(trends_str_keys)  # Return trends as JSON with string keys
+            else:
+                return jsonify({})  # Return empty JSON if columns are missing
+        return jsonify({})
+    except Exception as e:
+        print(f"Error in /report/usage-trends: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+
+@app.route("/report/employee-contributions", methods=["GET"])
+@login_required
+def employee_contributions():
+    """Return employee contributions data."""
+    if os.path.exists(LOG_FILE):
+        log_df = pd.read_excel(LOG_FILE)
+        if not log_df.empty and "User" in log_df.columns:
+            report = log_df.groupby("User")["Quantity Used"].sum().to_dict()
+            return jsonify(report)
+    return jsonify({})
 
 
 if __name__ == "__main__":

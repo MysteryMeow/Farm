@@ -11,6 +11,11 @@
     <div class="container mt-4">
         <h1 class="text-center mb-4">Inventory Tracker</h1>
 
+        <!-- Logout Button -->
+        <div class="text-end">
+            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+        </div>
+
         <!-- Log Usage Form -->
         <div class="card p-4 shadow-sm mb-4">
             <h3 class="text-center mb-3">Log Item Usage</h3>
@@ -71,27 +76,27 @@
             </table>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Action Buttons (Admin Only) -->
+        {% if role == "Admin" %}
         <div class="d-flex justify-content-center mt-4 flex-wrap gap-3">
             <button id="exportButton" class="btn btn-success">Export Stock Data</button>
             <button id="downloadLogButton" class="btn btn-info">Download Log</button>
             <button id="downloadMostUsedButton" class="btn btn-secondary">Download Most Used Report</button>
             <button id="downloadEmployeeButton" class="btn btn-warning">Download Employee Report</button>
         </div>
+        {% endif %}
 
-        <!-- Most Used Items Chart -->
+        <!-- Charts Section (Visible to Everyone) -->
         <div class="mt-5">
             <h3 class="text-center mb-3">Most Used Items</h3>
             <canvas id="mostUsedChart"></canvas>
         </div>
 
-        <!-- Usage Trends Chart -->
         <div class="mt-5">
             <h3 class="text-center mb-3">Usage Trends Over Time</h3>
             <canvas id="usageTrendsChart"></canvas>
         </div>
 
-        <!-- Employee Usage Chart -->
         <div class="mt-5">
             <h3 class="text-center mb-3">Employee Usage</h3>
             <canvas id="employeeUsageChart"></canvas>
@@ -113,7 +118,7 @@
             .then(data => {
                 alert(data.message);
                 if (data.success) {
-                    location.reload(); // Reload the page to update the table
+                    location.reload();
                 }
             });
         });
@@ -131,7 +136,7 @@
             .then(data => {
                 alert(data.message);
                 if (data.success) {
-                    location.reload(); // Reload the page to update the table
+                    location.reload();
                 }
             });
         });
@@ -163,7 +168,9 @@
         fetch('/report/usage-trends')
             .then(response => response.json())
             .then(data => {
-                const dates = Object.keys(data);
+                const dates = Object.keys(data); // Dates are now strings
+                if (dates.length === 0) return; // No data, skip chart
+
                 const items = Object.keys(data[dates[0]]);
                 const datasets = items.map(item => ({
                     label: item,
@@ -173,15 +180,15 @@
                     fill: false
                 }));
 
-                new Chart(document.getElementById('usageTrendsChart').getContext('2d'), {
+                new Chart(document.getElementById('usageTrendsChart'), {
                     type: 'line',
-                    data: {
-                        labels: dates,
-                        datasets: datasets
-                    },
+                    data: { labels: dates, datasets: datasets },
                     options: { responsive: true, scales: { y: { beginAtZero: true } } }
                 });
-            });
+            })
+        .catch(error => {
+            console.error("Error fetching usage trends data:", error);
+        });
 
         // Fetch Employee Contributions Chart
         fetch('/report/employee-contributions')
@@ -195,7 +202,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Total Items Used by Employee',
+                            label: 'Employee Usage',
                             data: values,
                             backgroundColor: 'rgba(255, 159, 64, 0.2)',
                             borderColor: 'rgba(255, 159, 64, 1)',
@@ -206,20 +213,11 @@
                 });
             });
 
-        // Download Log Button
-        document.getElementById('downloadLogButton').addEventListener('click', function () {
-            window.location.href = '/download-log';
-        });
-
-        // Download Most Used Report Button
-        document.getElementById('downloadMostUsedButton').addEventListener('click', function () {
-            window.location.href = '/report/most-used/download';
-        });
-
-        // Download Employee Report Button
-        document.getElementById('downloadEmployeeButton').addEventListener('click', function () {
-            window.location.href = '/report/employee-contributions/download';
-        });
+        // Admin Export Buttons
+        document.getElementById('exportButton')?.addEventListener('click', () => fetch('/export').then(response => response.json()).then(data => alert(data.message)));
+        document.getElementById('downloadLogButton')?.addEventListener('click', () => window.location.href = '/download-log');
+        document.getElementById('downloadMostUsedButton')?.addEventListener('click', () => window.location.href = '/report/most-used/download');
+        document.getElementById('downloadEmployeeButton')?.addEventListener('click', () => window.location.href = '/report/employee-contributions/download');
     </script>
 </body>
 </html>
