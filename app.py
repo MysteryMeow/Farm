@@ -12,12 +12,36 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
+#gen reports
+def generate_most_used_report():
+    """Generates the most used items report."""
+    if os.path.exists("stock_data.xlsx"):
+        df = pd.read_excel("stock_data.xlsx")
+        if "Item" in df and "Used" in df:
+            report_df = df[["Item", "Used"]].sort_values(by="Used", ascending=False)
+            report_df.to_excel("most_used_report.xlsx", index=False)
+        else:
+            print("Error: Required columns missing in stock_data.xlsx")
+    else:
+        print("Error: stock_data.xlsx not found")
+
+def generate_employee_report():
+    """Generates the employee contribution report."""
+    if os.path.exists("inventory_log.xlsx"):
+        df = pd.read_excel("inventory_log.xlsx")
+        if "User" in df and "Quantity Used" in df:
+            report_df = df.groupby("User")["Quantity Used"].sum().reset_index()
+            report_df.to_excel("employee_contributions.xlsx", index=False)
+        else:
+            print("Error: Required columns missing in inventory_log.xlsx")
+    else:
+        print("Error: inventory_log.xlsx not found")
+
 # User model (in-memory for simplicity)
 users = {
     "admin": {"password": "admin123", "role": "Admin"},
     "employee1": {"password": "password1", "role": "Employee"},
     "employee2": {"password": "password2", "role": "Employee"},
-    "ron":{"password":"ron","role":"Admin",}
 }
 
 class User(UserMixin):
@@ -138,29 +162,30 @@ def add_item():
 @login_required
 def export_data():
     if current_user.role != "Admin":
-        return jsonify({"success": False, "message": "You do not have permission to export data."})
-    if os.path.exists(STOCK_FILE):
+        flash("You are not authorized to export data.", "danger")
+        return redirect(url_for("index"))
+
+    if os.path.exists("stock_data.xlsx"):
         return send_file(STOCK_FILE, as_attachment=True)
-    return jsonify({"success": False, "message": "Stock file not found."})
+
+    flash("Stock file not found.", "danger")
+    return redirect(url_for("index"))
+
 
 @app.route("/download-log", methods=["GET"])
 @login_required
 def download_log():
     if current_user.role != "Admin":
-        return jsonify({"success": False, "message": "You do not have permission to download logs."})
-    if os.path.exists(LOG_FILE):
-        return send_file(LOG_FILE, as_attachment=True)
-    return jsonify({"success": False, "message": "Log file not found."})
-@app.route("/report/most-used", methods=["GET"])
-@login_required
-def most_used_items():
-    """Return most used items data."""
-    if os.path.exists(LOG_FILE):
-        log_df = pd.read_excel(LOG_FILE)
-        if not log_df.empty and "Quantity Used" in log_df.columns:
-            report = log_df.groupby("Item")["Quantity Used"].sum().to_dict()
-            return jsonify(report)
-    return jsonify({})
+        flash("You are not authorized to download the log.", "danger")
+        return redirect(url_for("index"))
+
+    if os.path.exists("inventory_log.xlsx"):
+        return send_file("inventory_log.xlsx", as_attachment=True)
+
+    flash("Log file not found.", "danger")
+    return redirect(url_for("index"))
+
+
 
 @app.route("/report/usage-trends", methods=["GET"])
 @login_required
@@ -192,17 +217,98 @@ def usage_trends():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/report/most-used", methods=["GET"])
+@login_required
+def most_used_report():
+    if current_user.role != "Admin":
+        flash("You are not authorized to download this report.", "danger")
+        return redirect(url_for("index"))
+
+    generate_most_used_report()  # Ensure the report is generated before sending
+
+    if os.path.exists("most_used_report.xlsx"):
+        return send_file("most_used_report.xlsx", as_attachment=True)
+
+    flash("Report not found.", "danger")
+    return redirect(url_for("index"))
+
+
 
 @app.route("/report/employee-contributions", methods=["GET"])
 @login_required
-def employee_contributions():
-    """Return employee contributions data."""
-    if os.path.exists(LOG_FILE):
-        log_df = pd.read_excel(LOG_FILE)
-        if not log_df.empty and "User" in log_df.columns:
-            report = log_df.groupby("User")["Quantity Used"].sum().to_dict()
-            return jsonify(report)
+def employee_contributions_report():
+    if current_user.role != "Admin":
+        flash("You are not authorized to download this report.", "danger")
+        return redirect(url_for("index"))
+
+    generate_employee_report()  # Ensure the report is generated before sending
+
+    if os.path.exists("employee_contributions.xlsx"):
+        return send_file("employee_contributions.xlsx", as_attachment=True)
+
+    flash("Report not found.", "danger")
+    return redirect(url_for("index"))
+
+@app.route("/report/most-used-data")
+@login_required
+def most_used_chart_data():
+    """Returns JSON data for most used items chart."""
+    if os.path.exists("stock_data.xlsx"):
+        df = pd.read_excel("stock_data.xlsx")
+        if "Item" in df and "Used" in df:
+            report_df = df[["Item", "Used"]].sort_values(by="Used", ascending=False)
+            data = report_df.set_index("Item")["Used"].to_dict()
+            return jsonify(data)
     return jsonify({})
+
+@app.route("/report/employee-usage-data")
+@login_required
+def employee_usage_chart_data():
+    """Returns JSON data for employee contributions chart."""
+    if os.path.exists("inventory_log.xlsx"):
+        df = pd.read_excel("inventory_log.xlsx")
+        if "User" in df and "Quantity Used" in df:
+            report_df = df.groupby("User")["Quantity Used"].sum().reset_index()
+            data = report_df.set_index("User")["Quantity Used"].to_dict()
+            return jsonify(data)
+    return jsonify({})
+
+@app.route("/report/usage-trends-data")
+@login_required
+def usage_trends_chart_data():
+    """Returns JSON data for usage trends per item over time."""
+    if os.path.exists("inventory_log.xlsx"):
+        df = pd.read_excel("inventory_log.xlsx")
+
+        if "Date" not in df or "Item" not in df or "Quantity Used" not in df:
+            print("❌ ERROR: Missing required columns in inventory_log.xlsx")
+            return jsonify({"error": "Missing required columns in inventory_log.xlsx", "columns_found": df.columns.tolist()})
+
+        # Ensure Date is formatted correctly
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df = df.dropna(subset=["Date"])
+
+        if df.empty:
+            print("❌ ERROR: No valid data after processing.")
+            return jsonify({"error": "No valid data in log."})
+
+        # Group by Date and Item, summing Quantity Used
+        report_df = df.groupby([df["Date"].dt.strftime("%Y-%m-%d"), "Item"])["Quantity Used"].sum().reset_index()
+
+        # Convert DataFrame into a dictionary of item-wise usage trends
+        data = {}
+        for item in report_df["Item"].unique():
+            item_df = report_df[report_df["Item"] == item]
+            data[item] = dict(zip(item_df["Date"], item_df["Quantity Used"]))
+
+        print("✅ Processed Data:", data)  # Debugging output
+        return jsonify(data)
+
+    print("❌ ERROR: inventory_log.xlsx not found")
+    return jsonify({"error": "inventory_log.xlsx not found"})
+
+
+
 
 
 if __name__ == "__main__":
