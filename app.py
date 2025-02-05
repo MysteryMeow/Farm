@@ -34,6 +34,7 @@ users = {
 	"admin": {"password": "admin123", "role": "Admin"},
 	"employee1": {"password": "password1", "role": "Employee"},
 	"employee2": {"password": "password2", "role": "Employee"},
+	"Constance": {"password": "Constance81","role": "Admin"}
 }
 
 
