@@ -11,12 +11,15 @@ from flask_login import (
 	login_required, current_user
 )
 from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # ------------------------------------------------------------------------------
 # App & Database Configuration
 # ------------------------------------------------------------------------------
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersecretkey")
 
 # Configure SQLAlchemy to use SQLite
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventory.db'
@@ -29,31 +32,26 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# In-memory user data (for demonstration)
-users = {
-	"admin": {"password": "admin123", "role": "Admin"},
-	"employee1": {"password": "password1", "role": "Employee"},
-	"employee2": {"password": "password2", "role": "Employee"},
-	"Constance": {"password": "Constance81","role": "Admin"}
-}
-
-
-class User(UserMixin):
-	def __init__(self, username, role):
-		self.id = username
-		self.role = role
-
-
-@login_manager.user_loader
-def load_user(username):
-	if username in users:
-		return User(username, users[username]["role"])
-	return None
-
 
 # ------------------------------------------------------------------------------
 # Database Models
 # ------------------------------------------------------------------------------
+class User(db.Model, UserMixin):
+	id = db.Column(db.Integer, primary_key=True)
+	username = db.Column(db.String(64), unique=True, nullable=False)
+	password_hash = db.Column(db.String(128), nullable=False)
+	role = db.Column(db.String(64), nullable=False)
+
+	def set_password(self, password):
+		self.password_hash = generate_password_hash(password)
+
+	def check_password(self, password):
+		return check_password_hash(self.password_hash, password)
+
+	def __repr__(self):
+		return f'<User {self.username}>'
+
+
 class Stock(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	item = db.Column(db.String(64), unique=True, nullable=False)
@@ -77,61 +75,39 @@ class InventoryLog(db.Model):
 		return f'<InventoryLog {self.item} - {self.quantity_used}>'
 
 
+@login_manager.user_loader
+def load_user(user_id):
+	return User.query.get(int(user_id))
+
+
 # ------------------------------------------------------------------------------
-# Data Migration Functions
+# Flask-Admin Integration
 # ------------------------------------------------------------------------------
-def migrate_stock_data():
-	"""Migrate stock data from stock_data.xlsx to the database."""
-	if os.path.exists("stock_data.xlsx"):
-		df = pd.read_excel("stock_data.xlsx")
-		for _, row in df.iterrows():
-			# Avoid duplicate entries if migration is run multiple times
-			existing_item = Stock.query.filter_by(item=row["Item"]).first()
-			if not existing_item:
-				new_stock = Stock(
-					item=row["Item"],
-					stock=row["Stock"],
-					used=row["Used"],
-					remaining=row["Remaining"]
-				)
-				db.session.add(new_stock)
-		db.session.commit()
-		print("Stock data migration complete.")
-	else:
-		print("stock_data.xlsx not found.")
+class AdminModelView(ModelView):
+	def is_accessible(self):
+		# Only allow access if the user is logged in and is an Admin.
+		return current_user.is_authenticated and current_user.role == "Admin"
+
+	def inaccessible_callback(self, name, **kwargs):
+		# Redirect to the login page if the user doesn't have access.
+		return redirect(url_for("login"))
 
 
-def migrate_inventory_logs():
-	"""Migrate inventory log data from inventory_log.xlsx to the database."""
-	if os.path.exists("inventory_log.xlsx"):
-		df = pd.read_excel("inventory_log.xlsx")
-		expected_columns = {"Timestamp", "User", "Item", "Quantity Used", "Action"}
-		if not expected_columns.issubset(set(df.columns)):
-			print("❌ ERROR: Missing required columns in inventory_log.xlsx")
-			return
-		for _, row in df.iterrows():
-			try:
-				timestamp = datetime.strptime(row["Timestamp"], "%Y-%m-%d %H:%M:%S")
-			except Exception as e:
-				print(f"Skipping row due to timestamp conversion error: {e}")
-				continue
-
-			new_log = InventoryLog(
-				timestamp=timestamp,
-				user=row["User"],
-				item=row["Item"],
-				quantity_used=row["Quantity Used"],
-				action=row["Action"]
-			)
-			db.session.add(new_log)
-		db.session.commit()
-		print("Inventory log migration complete.")
-	else:
-		print("inventory_log.xlsx not found.")
+# Initialize Flask-Admin
+admin = Admin(app, name='Inventory Admin', template_mode='bootstrap3')
+admin.add_view(AdminModelView(User, db.session))
+admin.add_view(AdminModelView(Stock, db.session))
+admin.add_view(AdminModelView(InventoryLog, db.session))
 
 
-def initialize_stock_db():
-	"""If the Stock table is empty, initialize it with default items."""
+# ------------------------------------------------------------------------------
+# Routes
+# ------------------------------------------------------------------------------
+
+@app.route("/")
+@login_required
+def index():
+	# Initialize stock in the database if none exists.
 	if Stock.query.count() == 0:
 		data = {
 			"Item": ["Mop", "Bucket", "Detergent", "Gloves", "Sponges"],
@@ -149,18 +125,6 @@ def initialize_stock_db():
 			)
 			db.session.add(new_stock)
 		db.session.commit()
-		print("Initialized stock in DB.")
-
-
-# ------------------------------------------------------------------------------
-# Routes
-# ------------------------------------------------------------------------------
-
-@app.route("/")
-@login_required
-def index():
-	# Ensure stock items are initialized.
-	initialize_stock_db()
 	stocks = Stock.query.all()
 	data = [
 		{"Item": stock.item, "Stock": stock.stock, "Used": stock.used, "Remaining": stock.remaining}
@@ -175,8 +139,8 @@ def login():
 		username = request.form.get("username")
 		password = request.form.get("password")
 
-		if username in users and users[username]["password"] == password:
-			user = User(username, users[username]["role"])
+		user = User.query.filter_by(username=username).first()
+		if user and user.check_password(password):
 			login_user(user)
 			flash("Login successful!", "success")
 			return redirect(url_for("index"))
@@ -192,6 +156,33 @@ def logout():
 	return redirect(url_for("login"))
 
 
+@app.route("/register", methods=["GET", "POST"])
+@login_required
+def register():
+	# Only Admins can register new users.
+	if current_user.role != "Admin":
+		flash("You are not authorized to add new users.", "danger")
+		return redirect(url_for("index"))
+
+	if request.method == "POST":
+		username = request.form.get("username")
+		password = request.form.get("password")
+		role = request.form.get("role", "Employee")  # default role is Employee
+
+		if User.query.filter_by(username=username).first():
+			flash("User already exists.", "danger")
+			return redirect(url_for("register"))
+
+		new_user = User(username=username, role=role)
+		new_user.set_password(password)
+		db.session.add(new_user)
+		db.session.commit()
+		flash(f"User {username} added successfully.", "success")
+		return redirect(url_for("index"))
+
+	return render_template("register.html")
+
+
 @app.route("/log", methods=["POST"])
 @login_required
 def log_usage():
@@ -201,8 +192,6 @@ def log_usage():
 	except (TypeError, ValueError):
 		return jsonify({"success": False, "message": "Invalid quantity."})
 
-	user = current_user.id
-
 	stock_item = Stock.query.filter_by(item=item_name).first()
 	if stock_item:
 		stock_item.used += quantity_used
@@ -210,7 +199,7 @@ def log_usage():
 
 		new_log = InventoryLog(
 			timestamp=datetime.now(),
-			user=user,
+			user=current_user.username,
 			item=item_name,
 			quantity_used=quantity_used,
 			action="Usage Logged"
@@ -218,7 +207,8 @@ def log_usage():
 		db.session.add(new_log)
 		db.session.commit()
 
-		return jsonify({"success": True, "message": f"{quantity_used} units of {item_name} logged by {user}."})
+		return jsonify(
+			{"success": True, "message": f"{quantity_used} units of {item_name} logged by {current_user.username}."})
 	else:
 		return jsonify({"success": False, "message": f"Item '{item_name}' not found."})
 
@@ -228,7 +218,7 @@ def log_usage():
 def add_item():
 	item_name = request.form.get("item")
 	try:
-		stock = int(request.form.get("stock"))
+		stock_val = int(request.form.get("stock"))
 	except (TypeError, ValueError):
 		return jsonify({"success": False, "message": "Invalid stock value."})
 
@@ -237,39 +227,34 @@ def add_item():
 
 	new_item = Stock(
 		item=item_name,
-		stock=stock,
+		stock=stock_val,
 		used=0,
-		remaining=stock
+		remaining=stock_val
 	)
 	db.session.add(new_item)
 	db.session.commit()
-	return jsonify({"success": True, "message": f"Item '{item_name}' added with stock {stock}."})
+	return jsonify({"success": True, "message": f"Item '{item_name}' added with stock {stock_val}."})
 
 
 @app.route("/export", methods=["GET"])
 @login_required
 def export_data():
 	if current_user.role != "Admin":
-		flash("You are not authorized to export data.", "danger")
-		return redirect(url_for("index"))
+		return jsonify({"error": "You are not authorized to export data."}), 403
 
 	stocks = Stock.query.all()
 	data = [
 		{"Item": stock.item, "Stock": stock.stock, "Used": stock.used, "Remaining": stock.remaining}
 		for stock in stocks
 	]
-	df = pd.DataFrame(data)
-	file_path = "stock_data_export.xlsx"
-	df.to_excel(file_path, index=False)
-	return send_file(file_path, as_attachment=True)
+	return jsonify(data)
 
 
 @app.route("/download-log", methods=["GET"])
 @login_required
 def download_log():
 	if current_user.role != "Admin":
-		flash("You are not authorized to download the log.", "danger")
-		return redirect(url_for("index"))
+		return jsonify({"error": "You are not authorized to download the log."}), 403
 
 	logs = InventoryLog.query.all()
 	data = [{
@@ -279,23 +264,16 @@ def download_log():
 		"Quantity Used": log.quantity_used,
 		"Action": log.action
 	} for log in logs]
-	df = pd.DataFrame(data)
-	file_path = "inventory_log_export.xlsx"
-	df.to_excel(file_path, index=False)
-	return send_file(file_path, as_attachment=True)
+	return jsonify(data)
 
-
-# ------------------ Reporting Endpoints ------------------
 
 @app.route("/report/usage-trends", methods=["GET"])
 @login_required
 def usage_trends():
-	"""Return item usage trends over time."""
 	logs = InventoryLog.query.all()
 	if not logs:
 		return jsonify({})
 
-	# Create a DataFrame from the logs
 	data = [{
 		"Timestamp": log.timestamp,
 		"Item": log.item,
@@ -304,10 +282,9 @@ def usage_trends():
 	df = pd.DataFrame(data)
 	if not df.empty and {"Timestamp", "Item", "Quantity Used"}.issubset(df.columns):
 		df["Timestamp"] = pd.to_datetime(df["Timestamp"])
-		# Group by date and item, summing quantity used
+		# Group by date and item, summing quantity used.
 		grouped = df.groupby([df["Timestamp"].dt.date, "Item"])["Quantity Used"].sum().unstack(fill_value=0)
 		trends = grouped.transpose().to_dict()
-		# Convert keys to strings for JSON compatibility
 		trends_str_keys = {str(k): v for k, v in trends.items()}
 		return jsonify(trends_str_keys)
 	else:
@@ -323,10 +300,7 @@ def most_used_report():
 
 	stocks = Stock.query.order_by(Stock.used.desc()).all()
 	data = [{"Item": stock.item, "Used": stock.used} for stock in stocks]
-	df = pd.DataFrame(data)
-	file_path = "most_used_report.xlsx"
-	df.to_excel(file_path, index=False)
-	return send_file(file_path, as_attachment=True)
+	return jsonify(data)
 
 
 @app.route("/report/employee-contributions", methods=["GET"])
@@ -337,24 +311,18 @@ def employee_contributions_report():
 		return redirect(url_for("index"))
 
 	logs = InventoryLog.query.all()
-	data = [{
-		"User": log.user,
-		"Quantity Used": log.quantity_used
-	} for log in logs]
+	data = [{"User": log.user, "Quantity Used": log.quantity_used} for log in logs]
 	df = pd.DataFrame(data)
 	if not df.empty:
 		report_df = df.groupby("User")["Quantity Used"].sum().reset_index()
 	else:
 		report_df = pd.DataFrame(columns=["User", "Quantity Used"])
-	file_path = "employee_contributions.xlsx"
-	report_df.to_excel(file_path, index=False)
-	return send_file(file_path, as_attachment=True)
+	return jsonify(report_df.to_dict(orient="records"))
 
 
 @app.route("/report/most-used-data")
 @login_required
 def most_used_chart_data():
-	"""Returns JSON data for most used items chart."""
 	stocks = Stock.query.all()
 	data = {stock.item: stock.used for stock in stocks}
 	return jsonify(data)
@@ -363,7 +331,6 @@ def most_used_chart_data():
 @app.route("/report/employee-usage-data")
 @login_required
 def employee_usage_chart_data():
-	"""Returns JSON data for employee contributions chart."""
 	logs = InventoryLog.query.all()
 	usage = {}
 	for log in logs:
@@ -374,7 +341,6 @@ def employee_usage_chart_data():
 @app.route("/report/usage-trends-data")
 @login_required
 def usage_trends_chart_data():
-	"""Returns JSON data for usage trends per item over time."""
 	logs = InventoryLog.query.all()
 	if not logs:
 		return jsonify({"error": "No log data found."})
@@ -396,7 +362,6 @@ def usage_trends_chart_data():
 	for item in report_df["Item"].unique():
 		item_df = report_df[report_df["Item"] == item]
 		chart_data[item] = dict(zip(item_df["Date"], item_df["Quantity Used"]))
-
 	return jsonify(chart_data)
 
 
@@ -406,9 +371,5 @@ def usage_trends_chart_data():
 if __name__ == "__main__":
 	with app.app_context():
 		db.create_all()
-
-		# Uncomment the following lines if you need to migrate existing Excel data:
-		# migrate_stock_data()
-		# migrate_inventory_logs()
 	port = int(os.environ.get("PORT", 5000))
 	app.run(debug=True, host="0.0.0.0", port=port)
