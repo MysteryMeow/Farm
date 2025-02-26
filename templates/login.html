@@ -9,6 +9,15 @@
 <body style="background-color: lightblue;">
     <div class="container mt-5">
         <h2 class="text-center">Clean Right Solutions Inventory Tracker Login</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mt-2">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+
         <form id="loginForm" method="POST" action="{{ url_for('login') }}" class="mt-4">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
