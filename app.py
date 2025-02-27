@@ -39,10 +39,10 @@ login_manager.login_view = "login"
 # Database Models
 # ------------------------------------------------------------------------------
 class User(db.Model, UserMixin):
-    __tablename__ = 'Clients'  # Use an explicit table name (avoids reserved word issues in Postgres)
+    __tablename__ = 'Clients'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(64), nullable=False)
 
     def set_password(self, password):
