@@ -131,6 +131,8 @@ def index():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
+
+        #IMPORTANT UN COMMENT BELOW WHEN DONE!!!!!!!!!
         username = request.form.get("username")
         password = request.form.get("password")
         user = User.query.filter_by(username=username).first()
