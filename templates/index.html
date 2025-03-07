@@ -25,7 +25,7 @@
                 <div class="col-md-4">
                     <input type="number" class="form-control" name="quantity" placeholder="Quantity Used" required>
                 </div>
-                
+
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100">Log</button>
                 </div>
@@ -239,40 +239,41 @@
 
     <script>
         document.getElementById("sortItem").addEventListener("click", function() {
-        // Get the table and its tbody
-        var table = document.getElementById("stockTable");
-        var tbody = table.tBodies[0];
-        var rows = Array.from(tbody.getElementsByTagName("tr"));
+            // Get the table and its tbody
+            var table = document.getElementById("stockTable");
+            var tbody = table.tBodies[0];
+            var rows = Array.from(tbody.getElementsByTagName("tr"));
 
-        // Determine the current sort direction by checking the header's innerHTML
-        var header = document.getElementById("sortItem");
-        var isAscending = header.innerHTML.includes("&#x25B2;");  // ▲ means ascending
+            // Determine the current sort direction by checking for the actual arrow character
+            var header = document.getElementById("sortItem");
+            var isAscending = header.innerHTML.includes("▲");  // Check for actual ▲
 
-        // Sort rows based on the text in the first cell ("Item" column)
-        rows.sort(function(a, b) {
-            var aText = a.cells[0].innerText.trim().toLowerCase();
-            var bText = b.cells[0].innerText.trim().toLowerCase();
-            if (aText < bText) return isAscending ? -1 : 1;
-            if (aText > bText) return isAscending ? 1 : -1;
-            return 0;
+            // Sort rows based on the text in the first cell ("Item" column)
+            rows.sort(function(a, b) {
+                var aText = a.cells[0].innerText.trim().toLowerCase();
+                var bText = b.cells[0].innerText.trim().toLowerCase();
+                if (aText < bText) return isAscending ? -1 : 1;
+                if (aText > bText) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            // Remove existing rows and re-append them in sorted order
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+            }
+            rows.forEach(function(row) {
+                tbody.appendChild(row);
+            });
+
+            // Toggle the arrow direction in the header
+            if (isAscending) {
+                header.innerHTML = "Item ▼"; // ▼ descending
+            } else {
+                header.innerHTML = "Item ▲"; // ▲ ascending
+            }
         });
+        </script>
 
-        // Remove existing rows and re-append them in sorted order
-        while (tbody.firstChild) {
-            tbody.removeChild(tbody.firstChild);
-        }
-        rows.forEach(function(row) {
-            tbody.appendChild(row);
-        });
-
-        // Toggle the arrow direction in the header
-        if (isAscending) {
-            header.innerHTML = "Item &#x25BC;"; // ▼ descending
-        } else {
-            header.innerHTML = "Item &#x25B2;"; // ▲ ascending
-        }
-    });
-</script>
 
 </body>
 </html>
