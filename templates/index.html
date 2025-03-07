@@ -255,23 +255,23 @@
             if (aText < bText) return isAscending ? -1 : 1;
             if (aText > bText) return isAscending ? 1 : -1;
             return 0;
-    });
+        });
 
-    // Remove existing rows and re-append them in sorted order
-    while (tbody.firstChild) {
-        tbody.removeChild(tbody.firstChild);
-    }
-    rows.forEach(function(row) {
-        tbody.appendChild(row);
-    });
+        // Remove existing rows and re-append them in sorted order
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+        rows.forEach(function(row) {
+            tbody.appendChild(row);
+        });
 
-    // Toggle the arrow direction in the header
-    if (isAscending) {
-        header.innerHTML = "Item &#x25BC;"; // ▼ descending
-    } else {
-        header.innerHTML = "Item &#x25B2;"; // ▲ ascending
-    }
-});
+        // Toggle the arrow direction in the header
+        if (isAscending) {
+            header.innerHTML = "Item &#x25BC;"; // ▼ descending
+        } else {
+            header.innerHTML = "Item &#x25B2;"; // ▲ ascending
+        }
+    });
 </script>
 
 </body>
