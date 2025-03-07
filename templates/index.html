@@ -49,10 +49,10 @@
 
         <div class="table-responsive shadow-sm">
             <h3 class="text-center mb-3">Current Stock</h3>
-            <table class="table table-striped table-bordered">
+            <table id="stockTable" class="table table-striped table-bordered">
                 <thead class="table-dark">
                     <tr>
-                        <th>Item</th>
+                        <th id="sortItem" style="cursor: pointer;">Item &#x25B2;</th>
                         <th>Stock</th>
                         <th>Used</th>
                         <th>Remaining</th>
@@ -236,5 +236,43 @@
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.getElementById("sortItem").addEventListener("click", function() {
+        // Get the table and its tbody
+        var table = document.getElementById("stockTable");
+        var tbody = table.tBodies[0];
+        var rows = Array.from(tbody.getElementsByTagName("tr"));
+
+        // Determine the current sort direction by checking the header's innerHTML
+        var header = document.getElementById("sortItem");
+        var isAscending = header.innerHTML.includes("&#x25B2;");  // ▲ means ascending
+
+        // Sort rows based on the text in the first cell ("Item" column)
+        rows.sort(function(a, b) {
+            var aText = a.cells[0].innerText.trim().toLowerCase();
+            var bText = b.cells[0].innerText.trim().toLowerCase();
+            if (aText < bText) return isAscending ? -1 : 1;
+            if (aText > bText) return isAscending ? 1 : -1;
+            return 0;
+    });
+
+    // Remove existing rows and re-append them in sorted order
+    while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+    }
+    rows.forEach(function(row) {
+        tbody.appendChild(row);
+    });
+
+    // Toggle the arrow direction in the header
+    if (isAscending) {
+        header.innerHTML = "Item &#x25BC;"; // ▼ descending
+    } else {
+        header.innerHTML = "Item &#x25B2;"; // ▲ ascending
+    }
+});
+</script>
+
 </body>
 </html>
