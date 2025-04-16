@@ -178,8 +178,11 @@ def log_usage():
     item_name = request.form.get("item")
     try:
         quantity_used = int(request.form.get("quantity"))
+        if quantity_used < 1:
+            return jsonify({"success": False, "message": "Quantity must be at least 1."})
     except (TypeError, ValueError):
         return jsonify({"success": False, "message": "Invalid quantity."})
+
     stock_item = Stock.query.filter_by(item=item_name).first()
     if stock_item:
         action = "Usage Logged" if quantity_used > 0 else "Restocked"
