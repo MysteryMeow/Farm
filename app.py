@@ -182,15 +182,18 @@ def log_usage():
         return jsonify({"success": False, "message": "Invalid quantity."})
     stock_item = Stock.query.filter_by(item=item_name).first()
     if stock_item:
-        stock_item.used += quantity_used
-        stock_item.remaining = stock_item.stock - stock_item.used
+        action = "Usage Logged" if quantity_used > 0 else "Restocked"
+        stock_item.used += max(quantity_used, 0)  # Increase used only if it's positive
+        stock_item.remaining = stock_item.stock - stock_item.used + abs(min(quantity_used, 0))
+
         new_log = InventoryLog(
             timestamp=datetime.now(),
             user=current_user.username,
             item=item_name,
             quantity_used=quantity_used,
-            action="Usage Logged"
+            action=action
         )
+
         db.session.add(new_log)
         db.session.commit()
         return jsonify({"success": True, "message": f"{quantity_used} units of {item_name} logged by {current_user.username}."})
