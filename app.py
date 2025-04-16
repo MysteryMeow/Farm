@@ -219,16 +219,24 @@ def add_item():
     except (TypeError, ValueError):
         return jsonify({"success": False, "message": "Invalid stock value."})
 
+    stock_item = Stock.query.filter_by(item=item_name).first()
+    if stock_item:
+        # RESTOCK ONLY EXISTING ITEMS
+        stock_item.stock += stock_val
+        stock_item.remaining += stock_val
 
-    new_item = Stock(
-        item=item_name,
-        stock=stock_val,
-        used=0,
-        remaining=stock_val
-    )
-    db.session.add(new_item)
-    db.session.commit()
-    return jsonify({"success": True, "message": f"Item '{item_name}' added with stock {stock_val}."})
+        new_log = InventoryLog(
+            timestamp=datetime.now(),
+            user=current_user.username,
+            item=item_name,
+            quantity_used=stock_val,
+            action="Restocked"
+        )
+        db.session.add(new_log)
+        db.session.commit()
+        return jsonify({"success": True, "message": f"{stock_val} units restocked for {item_name}."})
+    else:
+        return jsonify({"success": False, "message": f"Item '{item_name}' not found in stock. Cannot restock non-existing item."})
 
 @app.route("/export", methods=["GET"])
 @login_required
