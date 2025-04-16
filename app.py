@@ -219,8 +219,7 @@ def add_item():
     except (TypeError, ValueError):
         return jsonify({"success": False, "message": "Invalid stock value."})
 
-    if Stock.query.filter_by(item=item_name).first():
-        return jsonify({"success": False, "message": f"Item '{item_name}' already exists."})
+
     new_item = Stock(
         item=item_name,
         stock=stock_val,
