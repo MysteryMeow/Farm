@@ -187,7 +187,12 @@ def log_usage():
     if stock_item:
         action = "Usage Logged" if quantity_used > 0 else "Restocked"
         stock_item.used += max(quantity_used, 0)  # Increase used only if it's positive
-        stock_item.remaining = stock_item.stock - stock_item.used + abs(min(quantity_used, 0))
+        if quantity_used > 0:
+            stock_item.used += quantity_used
+            stock_item.remaining = stock_item.stock - stock_item.used
+        else:
+            stock_item.stock += abs(quantity_used)
+            stock_item.remaining += abs(quantity_used)
 
         new_log = InventoryLog(
             timestamp=datetime.now(),
@@ -209,8 +214,11 @@ def add_item():
     item_name = request.form.get("item")
     try:
         stock_val = int(request.form.get("stock"))
+        if stock_val < 1:
+            return jsonify({"success": False, "message": "Stock must be at least 1."})
     except (TypeError, ValueError):
         return jsonify({"success": False, "message": "Invalid stock value."})
+
     if Stock.query.filter_by(item=item_name).first():
         return jsonify({"success": False, "message": f"Item '{item_name}' already exists."})
     new_item = Stock(
