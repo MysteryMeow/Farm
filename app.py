@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 import pandas as pd
-
+from wtforms.fields import SelectField
 from flask import (
     Flask, render_template, request, jsonify,
     redirect, url_for, flash, send_file
@@ -89,6 +89,16 @@ def load_user(user_id):
 # Flask-Admin Integration
 # ------------------------------------------------------------------------------
 class AdminModelView(ModelView):
+    form_overrides = {
+        'category': SelectField
+    }
+
+    form_args = {
+        'category': {
+            'choices': [('Misc', 'Misc'), ('Cleaning', 'Cleaning'), ('Security', 'Security')]
+        }
+    }
+
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == "Admin"
 
