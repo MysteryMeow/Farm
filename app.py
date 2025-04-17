@@ -256,6 +256,45 @@ def download_log():
     return jsonify(data)
 
 # (remaining routes unchanged)
+@app.route("/report/most-used-data")
+@login_required
+def most_used_data():
+    results = db.session.query(Stock.item, Stock.used).order_by(Stock.used.desc()).limit(10).all()
+    return jsonify({item: used for item, used in results})
+
+# Route: Employee Usage Data for Chart.js
+@app.route("/report/employee-usage-data")
+@login_required
+def employee_usage_data():
+    results = db.session.query(InventoryLog.user, db.func.sum(InventoryLog.quantity_used))\
+        .group_by(InventoryLog.user).all()
+    return jsonify({user: qty for user, qty in results})
+
+# Route: Usage Trends Over Time (line chart)
+@app.route("/report/usage-trends-data")
+@login_required
+def usage_trends_data():
+    logs = InventoryLog.query.order_by(InventoryLog.timestamp).all()
+    trends = {}
+
+    for log in logs:
+        date = log.timestamp.strftime("%Y-%m-%d")
+        item = log.item
+        qty = log.quantity_used
+
+        if item not in trends:
+            trends[item] = {}
+        if date not in trends[item]:
+            trends[item][date] = 0
+        trends[item][date] += qty
+
+    return jsonify(trends)
+
+
+
+
+
+
 
 if __name__ == "__main__":
     with app.app_context():
