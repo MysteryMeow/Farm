@@ -95,7 +95,7 @@ class AdminModelView(ModelView):
 
     form_args = {
         'category': {
-            'choices': [('Misc', 'Misc'), ('Cleaning', 'Cleaning'), ('Security', 'Security')]
+            'choices': [('Misc', 'Misc'), ('Clothing', 'Clothing'), ('Security Gear', 'Security Gear')]
         }
     }
 
