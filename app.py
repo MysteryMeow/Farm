@@ -116,12 +116,13 @@ admin.add_view(AdminModelView(InventoryLog, db.session))
 @app.route("/")
 @login_required
 def index():
-    stocks = Stock.query.order_by(Stock.category.asc(), Stock.item.asc()).all()
-    grouped_data = {}
-    for stock in stocks:
-        grouped_data.setdefault(stock.category, []).append(stock)
-    return render_template("index.html", grouped_data=grouped_data, role=current_user.role)
+    # Group items by category
+    grouped_items = {}
+    for stock in Stock.query.order_by(Stock.category, Stock.item).all():
+        grouped_items.setdefault(stock.category, []).append(stock)
 
+    # Pass the grouped dictionary to the template
+    return render_template("index.html", grouped_items=grouped_items)
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
