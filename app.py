@@ -116,12 +116,11 @@ admin.add_view(AdminModelView(InventoryLog, db.session))
 @app.route("/")
 @login_required
 def index():
-    stocks = Stock.query.all()
-    data = [
-        {"Item": stock.item, "Stock": stock.stock, "Used": stock.used, "Remaining": stock.remaining}
-        for stock in stocks
-    ]
-    return render_template("index.html", data=data, role=current_user.role)
+    stocks = Stock.query.order_by(Stock.category.asc(), Stock.item.asc()).all()
+    grouped_data = {}
+    for stock in stocks:
+        grouped_data.setdefault(stock.category, []).append(stock)
+    return render_template("index.html", grouped_data=grouped_data, role=current_user.role)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
