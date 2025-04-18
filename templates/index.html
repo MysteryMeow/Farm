@@ -77,15 +77,7 @@
     {% endfor %}
 </div>
 
-        {% if role == "Admin" %}
-        <div class="d-flex justify-content-center mt-4 flex-wrap gap-3">
-<button class="btn btn-success" id="exportButton">Export Stock Data</button>
-<button class="btn btn-info" id="mostUsedReportButton">Download Most Used Report</button>
-<button class="btn btn-warning" id="employeeReportButton">Download Employee Report</button>
-<button class="btn btn-secondary" id="downloadLogButton">Download Log</button>
-<a class="btn btn-primary" href="{{ url_for('register') }}">Register New User</a>
-<a class="btn btn-secondary" href="/admin">Admin Dashboard</a>
-</div>
+
 
 
         <!-- Charts Section -->
