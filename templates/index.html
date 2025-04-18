@@ -87,6 +87,14 @@
 <a class="btn btn-secondary" href="/admin">Admin Dashboard</a>
 </div>
         {% endif %}
+{% if current_user.is_authenticated and current_user.is_admin %}
+<div class="d-flex justify-content-end mb-3">
+  <a class="btn btn-primary me-2" href="{{ url_for('register') }}">Register New User</a>
+  <a class="btn btn-secondary" href="{{ url_for('admin.index') }}">Admin Dashboard</a>
+</div>
+{% endif %}
+
+
 
         <!-- Charts Section -->
 <div class="mt-5">
