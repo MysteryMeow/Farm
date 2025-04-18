@@ -140,7 +140,7 @@ def index():
 	# Sort categories alphabetically
 	grouped_items = dict(sorted(grouped_items.items()))
 
-	return render_template("index.html", grouped_items=grouped_items)
+	return render_template("index.html", grouped_items=grouped_items, user_role=current_user.role)
 
 
 @app.route("/login", methods=["GET", "POST"])
