@@ -1,112 +1,105 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Tracker</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Inventory Tracker</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container mt-4">
-        <h1 class="text-center mb-4">BerZirk Inventory Tracker</h1>
-        <h6 class="text-center mb-4">Software Created and Developed by Ron Zirk</h6>
-
-        <div class="text-end">
-            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
-        </div>
-
-        <div class="card p-4 shadow-sm mb-4">
-            <h3 class="text-center mb-3">Log Item Usage</h3>
-            <form id="logForm" class="row g-3">
-                <div class="col-md-6">
-                    <select name="item" class="form-control" required>
+<div class="container mt-4">
+<h1 class="text-center mb-4">BerZirk Inventory Tracker</h1>
+<h6 class="text-center mb-4">Software Created and Developed by Ron Zirk</h6>
+<div class="text-end">
+<a class="btn btn-danger" href="{{ url_for('logout') }}">Logout</a>
+</div>
+<div class="card p-4 shadow-sm mb-4">
+<h3 class="text-center mb-3">Log Item Usage</h3>
+<form class="row g-3" id="logForm">
+<div class="col-md-6">
+<select class="form-control" name="item" required="">
                         {% for row in data %}
                             <option value="{{ row['Item'] }}">{{ row['Item'] }}</option>
                         {% endfor %}
                     </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="number" class="form-control" name="quantity" placeholder="Quantity Used" min="1" required>
-                </div>
-
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Log</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="card p-4 shadow-sm mb-4">
-            <h3 class="text-center mb-3">Restock Items</h3>
-            <form id="addItemForm" class="row g-3">
-                <div class="col-md-6">
-                    <select name="item" class="form-control" required>
+</div>
+<div class="col-md-4">
+<input class="form-control" min="1" name="quantity" placeholder="Quantity Used" required="" type="number"/>
+</div>
+<div class="col-md-2">
+<button class="btn btn-primary w-100" type="submit">Log</button>
+</div>
+</form>
+</div>
+<div class="card p-4 shadow-sm mb-4">
+<h3 class="text-center mb-3">Restock Items</h3>
+<form class="row g-3" id="addItemForm">
+<div class="col-md-6">
+<select class="form-control" name="item" required="">
                         {% for row in data %}
                             <option value="{{ row['Item'] }}">{{ row['Item'] }}</option>
                         {% endfor %}
                     </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="number" class="form-control" name="stock" placeholder="Initial Stock" min="1" required>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-success w-100">Add</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="table-responsive shadow-sm">
-            <h3 class="text-center mb-3">Current Stock</h3>
-            <table id="stockTable" class="table table-striped table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th id="sortItem" style="cursor: pointer;">Item &#x25B2;</th>
-                        <th>Stock</th>
-                        <th>Used</th>
-                        <th>Remaining</th>
-                    </tr>
-                </thead>
-                <tbody>
+</div>
+<div class="col-md-4">
+<input class="form-control" min="1" name="stock" placeholder="Initial Stock" required="" type="number"/>
+</div>
+<div class="col-md-2">
+<button class="btn btn-success w-100" type="submit">Add</button>
+</div>
+</form>
+</div>
+<div class="table-responsive shadow-sm">
+<h3 class="text-center mb-3">Current Stock</h3>
+<table class="table table-striped table-bordered" id="stockTable">
+<thead class="table-dark">
+<tr>
+<th id="sortItem" style="cursor: pointer;">Item ▲</th>
+<th>Stock</th>
+<th>Used</th>
+<th>Remaining</th>
+</tr>
+</thead>
+<tbody>
                     {% for row in data %}
                     <tr>
-                        <td>{{ row['Item'] }}</td>
-                        <td>{{ row['Stock'] }}</td>
-                        <td>{{ row['Used'] }}</td>
-                        <td>{{ row['Remaining'] }}</td>
-                    </tr>
+<td>{{ row['Item'] }}</td>
+<td>{{ row['Stock'] }}</td>
+<td>{{ row['Used'] }}</td>
+<td>{{ row['Remaining'] }}</td>
+</tr>
                     {% endfor %}
                 </tbody>
-            </table>
-        </div>
+</table>
+</div>
 
         {% if role == "Admin" %}
         <div class="d-flex justify-content-center mt-4 flex-wrap gap-3">
-            <button id="exportButton" class="btn btn-success">Export Stock Data</button>
-            <button id="mostUsedReportButton" class="btn btn-info">Download Most Used Report</button>
-            <button id="employeeReportButton" class="btn btn-warning">Download Employee Report</button>
-            <button id="downloadLogButton" class="btn btn-secondary">Download Log</button>
-            <a href="{{ url_for('register') }}" class="btn btn-primary">Register New User</a>
-            <a href="/admin" class="btn btn-secondary">Admin Dashboard</a>
-        </div>
+<button class="btn btn-success" id="exportButton">Export Stock Data</button>
+<button class="btn btn-info" id="mostUsedReportButton">Download Most Used Report</button>
+<button class="btn btn-warning" id="employeeReportButton">Download Employee Report</button>
+<button class="btn btn-secondary" id="downloadLogButton">Download Log</button>
+<a class="btn btn-primary" href="{{ url_for('register') }}">Register New User</a>
+<a class="btn btn-secondary" href="/admin">Admin Dashboard</a>
+</div>
         {% endif %}
 
         <!-- Charts Section -->
-        <div class="mt-5">
-            <h3 class="text-center mb-3">Most Used Items</h3>
-            <canvas id="mostUsedChart"></canvas>
-        </div>
-
-        <div id="usageTrendsChartContainer">
-            <canvas id="usageTrendsChart"></canvas>
-        </div>
-
-        <div class="mt-5">
-            <h3 class="text-center mb-3">Employee Usage</h3>
-            <canvas id="employeeUsageChart"></canvas>
-        </div>
-    </div>
-
-    <script>
+<div class="mt-5">
+<h3 class="text-center mb-3">Most Used Items</h3>
+<canvas id="mostUsedChart"></canvas>
+</div>
+<div id="usageTrendsChartContainer">
+<canvas id="usageTrendsChart"></canvas>
+</div>
+<div class="mt-5">
+<h3 class="text-center mb-3">Employee Usage</h3>
+<canvas id="employeeUsageChart"></canvas>
+</div>
+</div>
+<script>
         // Handle logging item usage
         document.getElementById("logForm").addEventListener("submit", function (e) {
             e.preventDefault();
@@ -243,9 +236,8 @@
             window.location.href = "/download-log";
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
         document.getElementById("sortItem").addEventListener("click", function() {
             // Get the table and its tbody
             var table = document.getElementById("stockTable");
@@ -281,7 +273,5 @@
             }
         });
         </script>
-
-
 </body>
 </html>
