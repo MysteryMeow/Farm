@@ -338,8 +338,6 @@ def add_item():
         db.session.add(new_item)
         db.session.commit()
         flash(f"Item '{item_name}' added under '{category}'!", "success")
-        if Stock(stock_amount)<1:
-            flash("Stock amount must be non-negative numbers", "warning")
     else:
         flash("All fields are required", "warning")
 
