@@ -322,9 +322,9 @@ def usage_trends_data():
     return jsonify(trends)
 
 #allowing input of new items
-@app.route('/add_item', methods=['POST'])
+@app.route('/create_item', methods=['POST'])
 @login_required
-def add_item():
+def create_item():
     if current_user.role != "Admin":
         flash("Unauthorized access", "danger")
         return redirect(url_for('index'))
