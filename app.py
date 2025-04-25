@@ -340,6 +340,8 @@ def create_item():
         flash(f"Item '{item_name}' added under '{category}'!", "success")
     else:
         flash("All fields are required", "warning")
+    if stock_amount <0:
+        return jsonify({"success": False, "message": "Stock must be at least 1."})
 
     return redirect(url_for('index'))
 
