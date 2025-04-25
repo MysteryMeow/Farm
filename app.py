@@ -322,37 +322,27 @@ def usage_trends_data():
     return jsonify(trends)
 
 #allowing input of new items
-@app.route('/create_item', methods=['POST'])
+@app.route('/add_item', methods=['POST'])
 @login_required
-def create_item():
+def add_item():
+    if current_user.role != "Admin":
+        flash("Unauthorized access", "danger")
+        return redirect(url_for('index'))
+
     item_name = request.form.get('item')
-    stock = request.form.get('stock')
-    used = request.form.get('used')
-    remaining = request.form.get('remaining')
+    stock_amount = int(request.form.get('stock'))
     category = request.form.get('category')
 
-    # Validate presence
-    if not item_name or not stock or not used or not remaining or not category:
-        flash('All fields are required.', 'danger')
-        return redirect(url_for('index'))
+    if item_name and category:
+        new_item = Stock(item=item_name, stock=stock_amount, used=0, remaining=stock_amount, category=category)
+        db.session.add(new_item)
+        db.session.commit()
+        flash(f"Item '{item_name}' added under '{category}'!", "success")
+        if Stock(stock_amount)<1:
+            flash("Stock amount must be non-negative numbers", "warning")
+    else:
+        flash("All fields are required", "warning")
 
-    # Validate non-negative integers
-    try:
-        stock = int(stock)
-        used = int(used)
-        remaining = int(remaining)
-        if stock < 0 or used < 0 or remaining < 0:
-            flash('Stock, Used, and Remaining must be non-negative numbers.', 'danger')
-            return redirect(url_for('index'))
-    except ValueError:
-        flash('Stock, Used, and Remaining must be valid numbers.', 'danger')
-        return redirect(url_for('index'))
-
-    # Create and add new stock item
-    new_item = Stock(item=item_name, stock=stock, used=used, remaining=remaining, category=category)
-    db.session.add(new_item)
-    db.session.commit()
-    flash('New item added successfully!', 'success')
     return redirect(url_for('index'))
 
 
