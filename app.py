@@ -328,8 +328,15 @@ def create_item():
         return redirect(url_for('index'))
 
     item_name = request.form.get('item')
-    stock_amount = int(request.form.get('stock'))
     category = request.form.get('category')
+    try:
+        stock_amount = int(request.form.get('stock'))
+        if stock_amount < 1:
+            flash("Stock amount must be at least 1.", "warning")
+            return redirect(url_for('index'))
+    except (TypeError, ValueError):
+        flash("Invalid stock amount.", "warning")
+        return redirect(url_for('index'))
 
     if item_name and category:
         new_item = Stock(item=item_name, stock=stock_amount, used=0, remaining=stock_amount, category=category)
@@ -340,6 +347,7 @@ def create_item():
         flash("All fields are required", "warning")
 
     return redirect(url_for('index'))
+
 
 
 
