@@ -323,7 +323,7 @@ def usage_trends_data():
 @app.route('/create_item', methods=['POST'])
 @login_required
 def create_item():
-    if current_user.role != "Admin" or "Employee":
+    if current_user.role != "Admin":
         flash("Unauthorized access", "danger")
         return redirect(url_for('index'))
 
