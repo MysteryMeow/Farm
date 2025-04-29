@@ -200,28 +200,26 @@ def log_usage():
 
     stock_item = Stock.query.filter_by(item=item_name).first()
     if stock_item:
-        action = "Usage Logged" if quantity_used > 0 else "Restocked"
-        stock_item.used += max(quantity_used, 0)
-        if quantity_used > 0:
-            stock_item.used += quantity_used
-            stock_item.remaining = stock_item.stock - stock_item.used
-        else:
-            stock_item.stock += abs(quantity_used)
-            stock_item.remaining += abs(quantity_used)
+        if quantity_used > stock_item.remaining:
+            return jsonify({"success": False, "message": f"Not enough stock for {item_name}."})
+
+        stock_item.used += quantity_used
+        stock_item.remaining = stock_item.stock - stock_item.used
 
         new_log = InventoryLog(
             timestamp=datetime.now(),
             user=current_user.username,
             item=item_name,
             quantity_used=quantity_used,
-            action=action
+            action="Usage Logged"
         )
         db.session.add(new_log)
         db.session.commit()
         return jsonify(
-            {"success": True, "message": f"{quantity_used} units of {item_name} logged by {current_user.username}."})
+            {"success": True, "message": f"{quantity_used} units of {item_name} used by {current_user.username}."})
     else:
         return jsonify({"success": False, "message": f"Item '{item_name}' not found."})
+
 
 
 @app.route("/add-item", methods=["POST"])
