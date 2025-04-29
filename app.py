@@ -339,6 +339,13 @@ def create_item():
         return redirect(url_for('index'))
 
     if item_name and category:
+        # CHECK if item with same name already exists
+        existing_item = Stock.query.filter_by(item=item_name).first()
+        if existing_item:
+            flash(f"Item '{item_name}' already exists in the system!", "warning")
+            return redirect(url_for('index'))
+
+        # If not, create new item
         new_item = Stock(item=item_name, stock=stock_amount, used=0, remaining=stock_amount, category=category)
         db.session.add(new_item)
         db.session.commit()
@@ -347,6 +354,7 @@ def create_item():
         flash("All fields are required", "warning")
 
     return redirect(url_for('index'))
+
 
 
 
