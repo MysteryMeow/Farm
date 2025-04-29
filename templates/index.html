@@ -43,7 +43,7 @@
 </div>
 </form>
 </div>
-{% if user_role == "Admin" %}
+
 <div class="container mt-4">
     <h5>Add New Item</h5>
     <form method="POST" action="{{ url_for('create_item') }}">
@@ -63,7 +63,7 @@
         </div>
     </form>
 </div>
-{% endif %}
+
 
 <div class="table-responsive shadow-sm">
     <h3 class="text-center mb-3">Current Stock</h3>
