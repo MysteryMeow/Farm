@@ -351,7 +351,6 @@ def create_item():
             flash(f"Item '{item_name}' already exists in the system!", "warning")
             return redirect(url_for('index'))
 
-        # ✅ No 'remaining' here
         new_item = Stock(
             item=item_name,
             stock=stock_amount,
@@ -365,6 +364,7 @@ def create_item():
         flash("All fields are required", "warning")
 
     return redirect(url_for('index'))
+
 
 
 
