@@ -357,13 +357,20 @@ def create_item():
             used=0,
             category=category
         )
-        db.session.add(new_item)
-        db.session.commit()
-        flash(f"Item '{item_name}' added under '{category}'!", "success")
+
+        try:
+            db.session.add(new_item)
+            db.session.commit()
+            flash(f"Item '{item_name}' added under '{category}'!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error: {str(e)}", "danger")
+            return redirect(url_for('index'))
     else:
         flash("All fields are required", "warning")
 
     return redirect(url_for('index'))
+
 
 
 
