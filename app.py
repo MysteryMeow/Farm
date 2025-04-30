@@ -63,10 +63,13 @@ class Stock(db.Model):
     __tablename__ = 'stocks'
     id = db.Column(db.Integer, primary_key=True)
     item = db.Column(db.String(64), unique=True, nullable=False)
-    stock = db.Column(db.Integer, nullable=False)
-    used = db.Column(db.Integer, default=0)
-    remaining = db.Column(db.Integer, nullable=False)
+    stock = db.Column(db.Integer, nullable=False)  # Total amount ever received
+    used = db.Column(db.Integer, default=0)        # Total used
     category = db.Column(db.String(64), nullable=False, default="Misc")
+
+    @property
+    def remaining(self):
+        return self.stock - self.used
 
     def __repr__(self):
         return f'<Stock {self.item}>'
@@ -199,26 +202,28 @@ def log_usage():
         return jsonify({"success": False, "message": "Invalid quantity."})
 
     stock_item = Stock.query.filter_by(item=item_name).first()
-    if stock_item:
-        if quantity_used > stock_item.remaining:
-            return jsonify({"success": False, "message": f"Not enough stock for {item_name}."})
-
-        stock_item.used += quantity_used
-        stock_item.remaining = stock_item.stock - stock_item.used
-
-        new_log = InventoryLog(
-            timestamp=datetime.now(),
-            user=current_user.username,
-            item=item_name,
-            quantity_used=quantity_used,
-            action="Usage Logged"
-        )
-        db.session.add(new_log)
-        db.session.commit()
-        return jsonify(
-            {"success": True, "message": f"{quantity_used} units of {item_name} used by {current_user.username}."})
-    else:
+    if not stock_item:
         return jsonify({"success": False, "message": f"Item '{item_name}' not found."})
+
+    if quantity_used > stock_item.remaining:
+        return jsonify({"success": False, "message": f"Not enough stock for {item_name}."})
+
+    stock_item.used += quantity_used
+
+    new_log = InventoryLog(
+        timestamp=datetime.now(),
+        user=current_user.username,
+        item=item_name,
+        quantity_used=quantity_used,
+        action="Usage Logged"
+    )
+    db.session.add(new_log)
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "message": f"{quantity_used} units of {item_name} used by {current_user.username}."
+    })
 
 
 
@@ -234,24 +239,25 @@ def add_item():
         return jsonify({"success": False, "message": "Invalid stock value."})
 
     stock_item = Stock.query.filter_by(item=item_name).first()
-    if stock_item:
-        stock_item.stock += stock_val
-        # Recalculate remaining correctly
-        stock_item.remaining = stock_item.stock - stock_item.used
+    if not stock_item:
+        return jsonify({
+            "success": False,
+            "message": f"Item '{item_name}' not found in stock. Cannot restock non-existing item."
+        })
 
-        new_log = InventoryLog(
-            timestamp=datetime.now(),
-            user=current_user.username,
-            item=item_name,
-            quantity_used=stock_val,
-            action="Restocked"
-        )
-        db.session.add(new_log)
-        db.session.commit()
-        return jsonify({"success": True, "message": f"{stock_val} units restocked for {item_name}."})
-    else:
-        return jsonify(
-            {"success": False, "message": f"Item '{item_name}' not found in stock. Cannot restock non-existing item."})
+    stock_item.stock += stock_val
+
+    new_log = InventoryLog(
+        timestamp=datetime.now(),
+        user=current_user.username,
+        item=item_name,
+        quantity_used=stock_val,
+        action="Restocked"
+    )
+    db.session.add(new_log)
+    db.session.commit()
+
+    return jsonify({"success": True, "message": f"{stock_val} units restocked for {item_name}."})
 
 
 @app.route("/export")
