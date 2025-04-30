@@ -78,7 +78,6 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Item</th>
-                        <th>Stock</th>
                         <th>Used</th>
                         <th>Remaining</th>
                     </tr>
@@ -87,7 +86,6 @@
                     {% for item in items %}
                     <tr>
                         <td>{{ item.item }}</td>
-                        <td>{{ item.stock }}</td>
                         <td>{{ item.used }}</td>
                         <td>{{ item.remaining }}</td>
                     </tr>

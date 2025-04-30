@@ -25,6 +25,7 @@ def upgrade():
     op.drop_table('user')
     op.drop_table('location')
     op.drop_table('item')
+    op.drop_column('stocks', 'remaining')
     with op.batch_alter_table('stocks', schema=None) as batch_op:
         batch_op.alter_column('category',
                existing_type=sa.VARCHAR(length=64),
@@ -41,7 +42,7 @@ def downgrade():
         batch_op.alter_column('category',
                existing_type=sa.VARCHAR(length=64),
                nullable=True)
-
+    op.add_column('stocks',sa.Column('remaining', sa.Integer(), nullable=False, server_default="0"))
     op.create_table('item',
     sa.Column('id', sa.INTEGER(), nullable=False),
     sa.Column('name', sa.VARCHAR(length=100), nullable=False),
