@@ -236,7 +236,8 @@ def add_item():
     stock_item = Stock.query.filter_by(item=item_name).first()
     if stock_item:
         stock_item.stock += stock_val
-        stock_item.remaining += stock_val
+        # Recalculate remaining correctly
+        stock_item.remaining = stock_item.stock - stock_item.used
 
         new_log = InventoryLog(
             timestamp=datetime.now(),
