@@ -133,39 +133,6 @@
 </div>
 </div>
 <script>
-  const itemsByCategory = {{ grouped_items | tojson }};
-
-  function populateItemSelect(categorySelectId, itemSelectId) {
-    const category = document.getElementById(categorySelectId).value;
-    const itemSelect = document.getElementById(itemSelectId);
-    itemSelect.innerHTML = "";
-    itemSelect.disabled = false;
-
-    if (itemsByCategory[category]) {
-      itemsByCategory[category].forEach(item => {
-        const option = document.createElement("option");
-        option.value = item.item;
-        option.textContent = item.item;
-        itemSelect.appendChild(option);
-      });
-    } else {
-      const option = document.createElement("option");
-      option.textContent = "No items available";
-      option.disabled = true;
-      itemSelect.appendChild(option);
-    }
-  }
-
-  document.getElementById("usageCategorySelect").addEventListener("change", () => {
-    populateItemSelect("usageCategorySelect", "usageItemSelect");
-  });
-
-  document.getElementById("restockCategorySelect").addEventListener("change", () => {
-    populateItemSelect("restockCategorySelect", "restockItemSelect");
-  });
-</script>
-
-<script>
         // Handle logging item usage
         document.getElementById("logForm").addEventListener("submit", function (e) {
             e.preventDefault();
