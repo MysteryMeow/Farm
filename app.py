@@ -357,6 +357,15 @@ def create_item():
         try:
             db.session.add(new_item)
             db.session.commit()
+            log = InventoryLog(
+                timestamp=datetime.now(),
+                user=current_user.username,
+                item=item_name,
+                quantity_used=stock_amount,
+                action="Item Created"
+            )
+            db.session.add(log)
+            db.session.commit()
             flash(f"Item '{item_name}' added under '{category}' by {current_user.username}!", "success")
         except Exception as e:
             db.session.rollback()
