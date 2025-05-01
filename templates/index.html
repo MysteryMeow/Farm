@@ -24,6 +24,15 @@
       {% endif %}
     {% endwith %}
 
+    <!-- Admin Controls -->
+    {% if current_user.role == 'Admin' %}
+      <div class="mb-3">
+        <a class="btn btn-success" href="/export">Export Inventory</a>
+        <a class="btn btn-danger" href="/download-log">Download Usage Log</a>
+        <a class="btn btn-secondary" href="/admin">Admin Dashboard</a>
+      </div>
+    {% endif %}
+
     <!-- Category and Item Dropdowns -->
     <div class="mb-3">
       <label for="categorySelect" class="form-label">Select Category</label>
@@ -71,9 +80,27 @@
         </tbody>
       </table>
     {% endfor %}
+
+    <!-- Charts Section -->
+    <hr>
+    <div class="mt-5">
+      <h4>Most Used Items</h4>
+      <canvas id="most-used" height="100"></canvas>
+    </div>
+
+    <div class="mt-5">
+      <h4>Usage Trends</h4>
+      <canvas id="usage-trends" height="100"></canvas>
+    </div>
+
+    <div class="mt-5">
+      <h4>Employee Usage</h4>
+      <canvas id="employee-usage" height="100"></canvas>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const categorySelect = document.getElementById("categorySelect");
     const itemSelect = document.getElementById("itemSelect");
@@ -133,6 +160,25 @@
         if (data.success) location.reload();
       });
     });
+
+    // Load charts
+    fetch("/most-used")
+      .then(res => res.json())
+      .then(data => {
+        new Chart(document.getElementById("most-used"), data);
+      });
+
+    fetch("/usage-trends")
+      .then(res => res.json())
+      .then(data => {
+        new Chart(document.getElementById("usage-trends"), data);
+      });
+
+    fetch("/employee-usage")
+      .then(res => res.json())
+      .then(data => {
+        new Chart(document.getElementById("employee-usage"), data);
+      });
   </script>
 </body>
 </html>
