@@ -370,6 +370,18 @@ def create_item():
         flash("All fields are required", "warning")
 
     return redirect(url_for('index'))
+# below for dropdowns
+@app.route("/inventory-map")
+@login_required
+def inventory_map():
+    stocks = Stock.query.all()
+    category_map = {}
+    for item in stocks:
+        cat = item.category or "Uncategorized"
+        if cat not in category_map:
+            category_map[cat] = []
+        category_map[cat].append(item.item)
+    return jsonify(category_map)
 
 
 
