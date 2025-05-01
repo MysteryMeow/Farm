@@ -330,10 +330,6 @@ def usage_trends_data():
 @app.route('/create_item', methods=['POST'])
 @login_required
 def create_item():
-    if current_user.role != "Admin":
-        flash("Unauthorized access", "danger")
-        return redirect(url_for('index'))
-
     item_name = request.form.get('item')
     category = request.form.get('category')
     try:
@@ -361,7 +357,7 @@ def create_item():
         try:
             db.session.add(new_item)
             db.session.commit()
-            flash(f"Item '{item_name}' added under '{category}'!", "success")
+            flash(f"Item '{item_name}' added under '{category}' by {current_user.username}!", "success")
         except Exception as e:
             db.session.rollback()
             flash(f"Error: {str(e)}", "danger")
@@ -370,6 +366,7 @@ def create_item():
         flash("All fields are required", "warning")
 
     return redirect(url_for('index'))
+
 # below for dropdowns
 
 

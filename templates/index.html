@@ -56,7 +56,7 @@
 </div>
 </form>
 </div>
-{% if user_role == "Admin" %}
+{% if user_role %}
 <div class="container mt-4">
     <h5>Add New Item</h5>
     <form method="POST" action="{{ url_for('create_item') }}">
