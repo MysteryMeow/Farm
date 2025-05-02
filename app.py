@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-
+#
 # File paths
 STOCK_FILE = "stock_data.xlsx"
 LOG_FILE = "inventory_log.xlsx"
