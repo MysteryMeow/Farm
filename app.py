@@ -156,6 +156,8 @@ def login():
             login_user(user)
             flash("Login successful!", "success")
             return redirect(url_for("index"))
+        elif user.username == "Farm":
+            return redirect("https://berzirktracker-9f0955d2c8cf.herokuapp.com/")
         flash("Invalid username or password.", "danger")
     return render_template("login.html")
 
