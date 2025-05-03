@@ -1,5 +1,7 @@
 import os
 from datetime import datetime
+
+
 import pandas as pd
 from wtforms.fields import SelectField
 from flask import (
@@ -28,20 +30,11 @@ if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-
-# ------------------------------------------------------------------------------
-# Flask-Login Setup
-# ------------------------------------------------------------------------------
-login_manager = LoginManager(app)
-login_manager.login_view = "login"
+db.init_app(app)
 
 
-# ------------------------------------------------------------------------------
-# Database Models
-# ------------------------------------------------------------------------------
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -55,25 +48,17 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-
 class Stock(db.Model):
     __tablename__ = 'stocks'
     id = db.Column(db.Integer, primary_key=True)
     item = db.Column(db.String(64), unique=True, nullable=False)
-    stock = db.Column(db.Integer, nullable=False)  # Total amount ever received
-    used = db.Column(db.Integer, default=0)        # Total used
+    stock = db.Column(db.Integer, nullable=False)
+    used = db.Column(db.Integer, default=0)
     category = db.Column(db.String(64), nullable=False, default="Misc")
 
     @property
     def remaining(self):
         return self.stock - self.used
-
-    def __repr__(self):
-        return f'<Stock {self.item}>'
-
 
 class InventoryLog(db.Model):
     __tablename__ = 'inventory_logs'
@@ -84,9 +69,19 @@ class InventoryLog(db.Model):
     quantity_used = db.Column(db.Integer, nullable=False)
     action = db.Column(db.String(128), nullable=False)
 
-    def __repr__(self):
-        return f'<InventoryLog {self.item} - {self.quantity_used}>'
 
+migrate = Migrate(app, db)
+
+# ------------------------------------------------------------------------------
+# Flask-Login Setup
+# ------------------------------------------------------------------------------
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+
+
+# ------------------------------------------------------------------------------
+# Database Models
+# ------------------------------------------------------------------------------
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -391,8 +386,8 @@ def create_item():
 
 
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host="0.0.0.0", port=port)
+#if __name__ == "__main__":
+#    with app.app_context():
+#        db.create_all()
+#    port = int(os.environ.get("PORT", 5000))
+#    app.run(debug=True, host="0.0.0.0", port=port)
