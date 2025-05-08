@@ -199,6 +199,7 @@
             fetch(`/api/items/${encodeURIComponent(category)}`)
                 .then(response => response.json())
                 .then(data => {
+                    data.sort((a, b) => a.item.localeCompare(b.item));
                     data.forEach(item => {
                         const option = document.createElement("option");
                         option.value = item.item;
@@ -215,7 +216,6 @@
 
     document.getElementById("logItem").addEventListener("change", function () {
         const selectedOption = this.options[this.selectedIndex];
-        const stock = selectedOption.dataset.stock;
         const used = selectedOption.dataset.used;
         const remaining = selectedOption.dataset.remaining;
         const itemDetails = document.getElementById("logItemDetails");
@@ -255,7 +255,6 @@
 
     document.getElementById("restockItem").addEventListener("change", function () {
         const selectedOption = this.options[this.selectedIndex];
-        const stock = selectedOption.dataset.stock;
         const used = selectedOption.dataset.used;
         const remaining = selectedOption.dataset.remaining;
         const itemDetails = document.getElementById("restockItemDetails");
