@@ -240,6 +240,7 @@
                 .then(response => response.json())
                 .then(data => {
                     data.forEach(item => {
+                        data.sort((a, b) => a.item.localeCompare(b.item));
                         const option = document.createElement("option");
                         option.value = item.item;
                         option.textContent = item.item;
