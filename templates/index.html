@@ -220,7 +220,7 @@
         const remaining = selectedOption.dataset.remaining;
         const itemDetails = document.getElementById("logItemDetails");
         if (stock) {
-            itemDetails.textContent = `Stock: ${stock}, Used: ${used}, Remaining: ${remaining}`;
+            itemDetails.textContent = `Used: ${used}, Remaining: ${remaining}`;
         } else {
             itemDetails.textContent = '';
         }
@@ -260,7 +260,7 @@
         const remaining = selectedOption.dataset.remaining;
         const itemDetails = document.getElementById("restockItemDetails");
         if (stock) {
-            itemDetails.textContent = `Stock: ${stock}, Used: ${used}, Remaining: ${remaining}`;
+            itemDetails.textContent = `Used: ${used}, Remaining: ${remaining}`;
         } else {
             itemDetails.textContent = '';
         }
