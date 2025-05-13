@@ -408,6 +408,11 @@ def lists():
 @login_required
 def charts():
     return render_template("charts.html", user_role=current_user.role)
+# for map
+@app.route("/map")
+@login_required
+def map_view():
+    return render_template("farm_map.html", user_role=current_user.role)
 
 
 

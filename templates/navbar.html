@@ -16,6 +16,8 @@
                     <a class="nav-link {% if request.endpoint == 'charts' %}active{% endif %}" href="{{ url_for('charts') }}">Charts</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'farm_map' %}active{% endif %}" href="{{ url_for('farm_map') }}">Map</a>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                 </li>
             </ul>

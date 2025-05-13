@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Farm Map Overview</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            padding-top: 60px;
+        }
+        .farm-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 4px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .farm-plot {
+            background-color: #8bc34a;
+            border: 1px solid #333;
+            aspect-ratio: 1 / 1;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .farm-plot:hover {
+            transform: scale(1.05);
+            background-color: #7cb342;
+        }
+    </style>
+</head>
+<body>
+{% include 'navbar.html' %}
+<div class="container mt-4 text-center">
+    <h1 class="mb-3">Farm Overview Map</h1>
+    <p class="text-muted">Click on a plot to view details or manage crops.</p>
+    <div class="farm-grid">
+        {% for i in range(1, 101) %}
+        <div class="farm-plot" data-plot="{{ i }}" onclick="openPlotModal({{ i }})">
+            {{ i }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Plot Modal -->
+<div class="modal fade" id="plotModal" tabindex="-1" aria-labelledby="plotModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="plotModalLabel">Plot Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="plotInfo">Loading plot info...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Edit Plot (Future)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function openPlotModal(plotNumber) {
+    document.getElementById('plotInfo').textContent = "You clicked on Plot #" + plotNumber;
+    var myModal = new bootstrap.Modal(document.getElementById('plotModal'));
+    myModal.show();
+}
+</script>
+</body>
+</html>
