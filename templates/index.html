@@ -81,7 +81,7 @@
         </form>
     </div>
 
-    <!-- Add New Item (Admin only) -->
+    <!-- Add New Item-->
     {% if user_role %}
     <div class="container mt-4">
         <h5>Add New Item</h5>
@@ -104,38 +104,6 @@
     </div>
     {% endif %}
 
-    <!-- Current Stock Display -->
-    <div class="table-responsive shadow-sm mt-5">
-        <h3 class="text-center mb-3">Current Stock</h3>
-        {% for category, items in grouped_items.items() %}
-        <div class="mb-3">
-            <button class="btn btn-outline-dark w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#category-{{ loop.index }}" aria-expanded="false" aria-controls="category-{{ loop.index }}">
-                {{ category }}
-            </button>
-            <div class="collapse" id="category-{{ loop.index }}">
-                <table class="table table-striped table-bordered mt-2">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Item</th>
-                            <th>Used</th>
-                            <th>Remaining</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in items %}
-                        <tr>
-                            <td>{{ item.item }}</td>
-                            <td>{{ item.used }}</td>
-                            <td>{{ item.remaining }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
     <!-- Admin Controls -->
     {% if user_role == "Admin" %}
     <div class="d-flex justify-content-center mt-4 flex-wrap gap-3">
@@ -145,19 +113,6 @@
     </div>
     {% endif %}
 
-    <!-- Charts Section -->
-    <div class="mt-5">
-        <h3 class="text-center mb-3">Most Used Items</h3>
-        <canvas id="mostUsedChart"></canvas>
-    </div>
-    <div id="usageTrendsChartContainer">
-        <canvas id="usageTrendsChart"></canvas>
-    </div>
-    <div class="mt-5">
-        <h3 class="text-center mb-3">Employee Usage</h3>
-        <canvas id="employeeUsageChart"></canvas>
-    </div>
-</div>
 
 <!-- Scripts -->
 <script>
