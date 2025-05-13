@@ -4,14 +4,33 @@
     <meta charset="UTF-8">
     <title>Stock Lists</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+        .category-button {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .category-button:hover {
+            background-color: #343a40;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 {% include 'navbar.html' %}
 <div class="container mt-4">
-    <h1 class="text-center mb-4">Current Stock List</h1>
+    <h1 class="text-center mb-3">Current Stock Lists</h1>
+    <p class="text-center text-muted">Browse all current items by category. Use the search bar to quickly find a category.</p>
+
+    <!-- Search Bar -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <input type="text" class="form-control" id="categorySearch" placeholder="Search Categories...">
+        </div>
+    </div>
+
+    <!-- Categories and Items -->
     {% for category, items in grouped_items.items() %}
-    <div class="mb-3">
-        <button class="btn btn-outline-dark w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#category-{{ loop.index }}" aria-expanded="false" aria-controls="category-{{ loop.index }}">
+    <div class="mb-3 category-block">
+        <button class="btn btn-outline-dark w-100 text-start category-button" type="button" data-bs-toggle="collapse" data-bs-target="#category-{{ loop.index }}" aria-expanded="false" aria-controls="category-{{ loop.index }}">
             {{ category }}
         </button>
         <div class="collapse" id="category-{{ loop.index }}">
@@ -37,6 +56,21 @@
     </div>
     {% endfor %}
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Live Category Search
+document.getElementById('categorySearch').addEventListener('keyup', function() {
+    const search = this.value.toLowerCase();
+    document.querySelectorAll('.category-block').forEach(function(block) {
+        const btn = block.querySelector('.category-button');
+        if (btn.textContent.toLowerCase().includes(search)) {
+            block.style.display = '';
+        } else {
+            block.style.display = 'none';
+        }
+    });
+});
+</script>
 </body>
 </html>

@@ -393,11 +393,16 @@ def get_items_by_category(category):
 @app.route("/lists")
 @login_required
 def lists():
-    stocks = Stock.query.all()
+    stocks = Stock.query.order_by(Stock.category.asc(), Stock.item.asc()).all()
     grouped_items = {}
     for stock in stocks:
         grouped_items.setdefault(stock.category, []).append(stock)
+
+    # Sort the grouped items dictionary by category name
+    grouped_items = dict(sorted(grouped_items.items(), key=lambda x: x[0].lower()))
+
     return render_template("lists.html", grouped_items=grouped_items, user_role=current_user.role)
+
 
 @app.route("/charts")
 @login_required
