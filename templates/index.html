@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+{% include 'navbar.html' %}
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         <div class="mt-3">
