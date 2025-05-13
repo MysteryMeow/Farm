@@ -219,12 +219,14 @@
         const used = selectedOption.dataset.used;
         const remaining = selectedOption.dataset.remaining;
         const itemDetails = document.getElementById("logItemDetails");
-        if (stock) {
+        if (used !== undefined && remaining !== undefined) {
             itemDetails.textContent = `Used: ${used}, Remaining: ${remaining}`;
         } else {
             itemDetails.textContent = '';
         }
     });
+
+
 
     // Dynamic Dropdowns - Restocking
     document.getElementById("restockCategory").addEventListener("change", function () {
@@ -259,7 +261,7 @@
         const used = selectedOption.dataset.used;
         const remaining = selectedOption.dataset.remaining;
         const itemDetails = document.getElementById("restockItemDetails");
-        if (stock) {
+        if (used !== undefined && remaining !== undefined) {
             itemDetails.textContent = `Used: ${used}, Remaining: ${remaining}`;
         } else {
             itemDetails.textContent = '';
