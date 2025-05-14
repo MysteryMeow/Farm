@@ -117,6 +117,56 @@ def index():
     grouped_items = dict(sorted(grouped_items.items()))
     return render_template("index.html", grouped_items=grouped_items, user_role=current_user.role)
 
+@app.route('/create_item', methods=['POST'])
+@login_required
+def create_item():
+    item_name = request.form.get('item')
+    category = request.form.get('category')
+    try:
+        stock_amount = int(request.form.get('stock'))
+        if stock_amount < 1:
+            flash("Stock amount must be at least 1.", "warning")
+            return redirect(url_for('index'))
+    except (TypeError, ValueError):
+        flash("Invalid stock amount.", "warning")
+        return redirect(url_for('index'))
+
+    if item_name and category:
+        existing_item = Stock.query.filter_by(item=item_name).first()
+        if existing_item:
+            flash(f"Item '{item_name}' already exists in the system!", "warning")
+            return redirect(url_for('index'))
+
+        new_item = Stock(
+            item=item_name,
+            stock=stock_amount,
+            used=0,
+            category=category
+        )
+
+        try:
+            db.session.add(new_item)
+            db.session.commit()
+            log = InventoryLog(
+                timestamp=datetime.now(),
+                user=current_user.username,
+                item=item_name,
+                quantity_used=stock_amount,
+                action="Item Created"
+            )
+            db.session.add(log)
+            db.session.commit()
+            flash(f"Item '{item_name}' added under '{category}' by {current_user.username}!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error: {str(e)}", "danger")
+            return redirect(url_for('index'))
+    else:
+        flash("All fields are required", "warning")
+
+    return redirect(url_for('index'))
+
+
 
 @app.route("/map")
 @login_required
