@@ -177,6 +177,14 @@ def register():
         return redirect(url_for("index"))
     return render_template("register.html")
 
+@app.route("/lists")
+@login_required
+def lists():
+    stocks = Stock.query.order_by(Stock.category.asc(), Stock.item.asc()).all()
+    grouped_items = {}
+    for stock in stocks:
+        grouped_items.setdefault(stock.category, []).append(stock)
+    return render_template("lists.html", grouped_items=grouped_items, user_role=current_user.role)
 
 # All your other routes (log, add-item, reports, etc.) remain unchanged.
 # You can continue copying them below this line if needed.
