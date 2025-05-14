@@ -409,11 +409,26 @@ def lists():
 def charts():
     return render_template("charts.html", user_role=current_user.role)
 # for map
+#@app.route("/map")
+#@login_required
+#def map_view():
+#    return render_template("farm_map.html", user_role=current_user.role)
+
 @app.route("/map")
 @login_required
 def map_view():
-    return render_template("farm_map.html", user_role=current_user.role)
+    plots = Plot.query.order_by(Plot.plot_number).all()
+    return render_template("farm_map.html", plots=plots, user_role=current_user.role)
 
+
+class Plot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    plot_number = db.Column(db.Integer, unique=True, nullable=False)
+    crop = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.String(50), default='Empty')  # Example statuses: Empty, Planted, Needs Water, Harvest Ready
+
+    def __repr__(self):
+        return f"<Plot {self.plot_number} - {self.status}>"
 
 
 
