@@ -428,7 +428,7 @@ class Plot(db.Model):
     status = db.Column(db.String(50), default='Empty')  # Example statuses: Empty, Planted, Needs Water, Harvest Ready
 
 @app.route("/admin/upgrade-db")
-def upgrade_db(self):
+def upgrade_db():
     upgrade()
     return "Database upgraded successfully!"
 
