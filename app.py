@@ -239,7 +239,17 @@ def lists():
 @login_required
 def charts():
     return render_template("charts.html", user_role=current_user.role)
-
+# API route to get items by category
+@app.route("/api/items/<category>")
+@login_required
+def get_items_by_category(category):
+    items = Stock.query.filter_by(category=category).all()
+    return jsonify([{
+        "item": item.item,
+        "stock": item.stock,
+        "used": item.used,
+        "remaining": item.remaining
+    } for item in items])
 @app.route("/log", methods=["POST"])
 @login_required
 def log_usage():
