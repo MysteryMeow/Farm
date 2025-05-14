@@ -240,5 +240,73 @@ def lists():
 def charts():
     return render_template("charts.html", user_role=current_user.role)
 
+@app.route("/log", methods=["POST"])
+@login_required
+def log_usage():
+    item_name = request.form.get("item")
+    try:
+        quantity_used = int(request.form.get("quantity"))
+        if quantity_used < 1:
+            return jsonify({"success": False, "message": "Quantity must be at least 1."})
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "message": "Invalid quantity."})
+
+    stock_item = Stock.query.filter_by(item=item_name).first()
+    if not stock_item:
+        return jsonify({"success": False, "message": f"Item '{item_name}' not found."})
+
+    if quantity_used > stock_item.remaining:
+        return jsonify({"success": False, "message": f"Not enough stock for {item_name}."})
+
+    stock_item.used += quantity_used
+
+    new_log = InventoryLog(
+        timestamp=datetime.now(),
+        user=current_user.username,
+        item=item_name,
+        quantity_used=quantity_used,
+        action="Usage Logged"
+    )
+    db.session.add(new_log)
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "message": f"{quantity_used} units of {item_name} used by {current_user.username}."
+    })
+
+
+
+@app.route("/add-item", methods=["POST"])
+@login_required
+def add_item():
+    item_name = request.form.get("item")
+    try:
+        stock_val = int(request.form.get("stock"))
+        if stock_val < 1:
+            return jsonify({"success": False, "message": "Stock must be at least 1."})
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "message": "Invalid stock value."})
+
+    stock_item = Stock.query.filter_by(item=item_name).first()
+    if not stock_item:
+        return jsonify({
+            "success": False,
+            "message": f"Item '{item_name}' not found in stock. Cannot restock non-existing item."
+        })
+
+    stock_item.stock += stock_val
+
+    new_log = InventoryLog(
+        timestamp=datetime.now(),
+        user=current_user.username,
+        item=item_name,
+        quantity_used=stock_val,
+        action="Restocked"
+    )
+    db.session.add(new_log)
+    db.session.commit()
+
+    return jsonify({"success": True, "message": f"{stock_val} units restocked for {item_name}."})
 # All your other routes (log, add-item, reports, etc.) remain unchanged.
 # You can continue copying them below this line if needed.
