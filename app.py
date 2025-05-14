@@ -427,6 +427,12 @@ class Plot(db.Model):
     crop = db.Column(db.String(100), nullable=True)
     status = db.Column(db.String(50), default='Empty')  # Example statuses: Empty, Planted, Needs Water, Harvest Ready
 
+    @app.route("/admin/upgrade-db")
+    def upgrade_db():
+        from flask_migrate import upgrade
+        upgrade()
+        return "Database upgraded successfully!"
+
     def __repr__(self):
         return f"<Plot {self.plot_number} - {self.status}>"
 
