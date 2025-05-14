@@ -333,13 +333,12 @@ def most_used_data():
         .all()
     )
     return jsonify({item: used for item, used in data})
-
 @app.route("/report/employee-usage-data")
 @login_required
 def employee_usage_data():
     data = (
-        db.session.query(InventoryLog.employee_name, func.sum(InventoryLog.quantity))
-        .group_by(InventoryLog.employee_name)
+        db.session.query(InventoryLog.user, func.sum(InventoryLog.quantity_used))
+        .group_by(InventoryLog.user)
         .all()
     )
     return jsonify({employee: total for employee, total in data})
@@ -348,11 +347,12 @@ def employee_usage_data():
 @login_required
 def usage_trends_data():
     data = (
-        db.session.query(func.strftime('%Y-%m', InventoryLog.timestamp), func.sum(InventoryLog.quantity))
-        .group_by(func.strftime('%Y-%m', InventoryLog.timestamp))
-        .order_by(func.strftime('%Y-%m', InventoryLog.timestamp))
+        db.session.query(func.strftime('%Y-%m-%d', InventoryLog.timestamp), func.sum(InventoryLog.quantity_used))
+        .group_by(func.strftime('%Y-%m-%d', InventoryLog.timestamp))
+        .order_by(func.strftime('%Y-%m-%d', InventoryLog.timestamp))
         .all()
     )
-    return jsonify({month: total for month, total in data})
+    return jsonify({date: total for date, total in data})
+
 # All your other routes (log, add-item, reports, etc.) remain unchanged.
 # You can continue copying them below this line if needed.
