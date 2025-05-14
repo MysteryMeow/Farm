@@ -7,7 +7,8 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate, upgrade
-
+from flask import jsonify
+from sqlalchemy import func
 # ------------------------------------------------------------------------------
 # App & Database Configuration
 # ------------------------------------------------------------------------------
@@ -318,5 +319,40 @@ def add_item():
     db.session.commit()
 
     return jsonify({"success": True, "message": f"{stock_val} units restocked for {item_name}."})
+
+
+
+@app.route("/report/most-used-data")
+@login_required
+def most_used_data():
+    data = (
+        db.session.query(Stock.item, Stock.used)
+        .filter(Stock.used > 0)
+        .order_by(Stock.used.desc())
+        .limit(10)
+        .all()
+    )
+    return jsonify({item: used for item, used in data})
+
+@app.route("/report/employee-usage-data")
+@login_required
+def employee_usage_data():
+    data = (
+        db.session.query(InventoryLog.employee_name, func.sum(InventoryLog.quantity))
+        .group_by(InventoryLog.employee_name)
+        .all()
+    )
+    return jsonify({employee: total for employee, total in data})
+
+@app.route("/report/usage-trends-data")
+@login_required
+def usage_trends_data():
+    data = (
+        db.session.query(func.strftime('%Y-%m', InventoryLog.timestamp), func.sum(InventoryLog.quantity))
+        .group_by(func.strftime('%Y-%m', InventoryLog.timestamp))
+        .order_by(func.strftime('%Y-%m', InventoryLog.timestamp))
+        .all()
+    )
+    return jsonify({month: total for month, total in data})
 # All your other routes (log, add-item, reports, etc.) remain unchanged.
 # You can continue copying them below this line if needed.
