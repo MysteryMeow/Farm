@@ -185,6 +185,10 @@ def lists():
     for stock in stocks:
         grouped_items.setdefault(stock.category, []).append(stock)
     return render_template("lists.html", grouped_items=grouped_items, user_role=current_user.role)
+@app.route("/charts")
+@login_required
+def charts():
+    return render_template("charts.html", user_role=current_user.role)
 
 # All your other routes (log, add-item, reports, etc.) remain unchanged.
 # You can continue copying them below this line if needed.
