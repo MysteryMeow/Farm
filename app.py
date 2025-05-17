@@ -361,5 +361,17 @@ def usage_trends_data():
 
     return jsonify(result)
 
+@app.route("/update-plot/<int:plot_id>", methods=["POST"])
+@login_required
+def update_plot(plot_id):
+    data = request.get_json()
+    plot = Plot.query.get_or_404(plot_id)
+
+    plot.crop = data.get('crop', plot.crop)
+    plot.status = data.get('status', plot.status)
+
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "Plot updated successfully."})
 
 
