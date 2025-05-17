@@ -360,18 +360,26 @@ def usage_trends_data():
         result[item][date] = total
 
     return jsonify(result)
-
 @app.route("/update-plot/<int:plot_id>", methods=["POST"])
 @login_required
 def update_plot(plot_id):
     data = request.get_json()
-    plot = Plot.query.get_or_404(plot_id)
+    crop = data.get("crop", "").strip()
+    status = data.get("status", "").strip()
 
-    plot.crop = data.get('crop', plot.crop)
-    plot.status = data.get('status', plot.status)
+    if not status:
+        return jsonify({"success": False, "message": "Status is required."})
 
-    db.session.commit()
+    plot = Plot.query.get(plot_id)
+    if not plot:
+        return jsonify({"success": False, "message": f"Plot #{plot_id} not found."})
 
-    return jsonify({"success": True, "message": "Plot updated successfully."})
+    plot.crop = crop if crop else None
+    plot.status = status
 
-
+    try:
+        db.session.commit()
+        return jsonify({"success": True, "message": f"Plot #{plot_id} updated."})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Error: {str(e)}"})
