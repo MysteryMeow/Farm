@@ -347,12 +347,19 @@ def employee_usage_data():
 @login_required
 def usage_trends_data():
     data = (
-        db.session.query(func.strftime('%Y-%m-%d', InventoryLog.timestamp), func.sum(InventoryLog.quantity_used))
-        .group_by(func.strftime('%Y-%m-%d', InventoryLog.timestamp))
+        db.session.query(InventoryLog.item, func.strftime('%Y-%m-%d', InventoryLog.timestamp), func.sum(InventoryLog.quantity_used))
+        .group_by(InventoryLog.item, func.strftime('%Y-%m-%d', InventoryLog.timestamp))
         .order_by(func.strftime('%Y-%m-%d', InventoryLog.timestamp))
         .all()
     )
-    return jsonify({date: total for date, total in data})
 
-# All your other routes (log, add-item, reports, etc.) remain unchanged.
-# You can continue copying them below this line if needed.
+    result = {}
+    for item, date, total in data:
+        if item not in result:
+            result[item] = {}
+        result[item][date] = total
+
+    return jsonify(result)
+
+
+
