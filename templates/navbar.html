@@ -10,7 +10,7 @@
                     <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'Inventory' %}active{% endif %}" href="{{ url_for('Inventory') }}">Useage</a>
+                    <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">Useage</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint == 'lists' %}active{% endif %}" href="{{ url_for('lists') }}">Lists</a>
