@@ -103,7 +103,7 @@ admin.add_view(AdminModelView(Plot, db.session))
 # ------------------------------------------------------------------------------
 @app.route("/inventory")
 @login_required
-def index():
+def inventory():
     stocks = Stock.query.all()
     grouped_items = {}
     for item in stocks:
@@ -169,7 +169,7 @@ def create_item():
 
 @app.route("/")
 @login_required
-def inventory():
+def main():
     return render_template("index.html", user_role=current_user.role)
 
 @app.route("/silly")
