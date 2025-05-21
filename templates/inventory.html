@@ -1,279 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Puss-Prowlers</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
-  <link rel="stylesheet" href="./static/styles.css">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Inventory Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 {% include 'navbar.html' %}
-  <!-- Title -->
-  <section id="title" class="gradient-background">
-
-    <div class="container col-xxl-8 px-4 pt-5">
-      <div class="row flex-lg-row-reverse align-items-center g-5 pt-5">
-        <div class="col-10 col-sm-8 col-lg-6">
-          <img src="static/images/cat2.jpg" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" height="200"
-            loading="lazy">
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="mt-3">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
         </div>
-        <div class="col-lg-6">
-          <h1 class="display-5 fw-bold text-body-emphasis">Meet new and interesting cats nearby!</h1>
+    {% endif %}
+{% endwith %}
 
 
-          <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-            <button type="button" class="btn btn-light btn-lg px-4 me-md-2"><svg xmlns="http://www.w3.org/2000/svg"
-                width="16" height="16" fill="currentColor" class="bi bi-apple mb-1" viewBox="0 0 16 16">
-                <path
-                d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516.024.034 1.52.087 2.475-1.258.955-1.345.762-2.391.728-2.43Zm3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422.212-2.189 1.675-2.789 1.698-2.854.023-.065-.597-.79-1.254-1.157a3.692 3.692 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56.244.729.625 1.924 1.273 2.796.576.984 1.34 1.667 1.659 1.899.319.232 1.219.386 1.843.067.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758.347-.79.505-1.217.473-1.282Z" />
-                <path
-                d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516.024.034 1.52.087 2.475-1.258.955-1.345.762-2.391.728-2.43Zm3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422.212-2.189 1.675-2.789 1.698-2.854.023-.065-.597-.79-1.254-1.157a3.692 3.692 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56.244.729.625 1.924 1.273 2.796.576.984 1.34 1.667 1.659 1.899.319.232 1.219.386 1.843.067.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758.347-.79.505-1.217.473-1.282Z" />
-              </svg> Download</button>
-            <button type="button" class="btn btn-outline-light btn-lg px-4"><svg xmlns="http://www.w3.org/2000/svg"
-                width="16" height="16" fill="currentColor" class="bi bi-google-play mb-1" viewBox="0 0 16 16">
-                <path
-                  d="M14.222 9.374c1.037-.61 1.037-2.137 0-2.748L11.528 5.04 8.32 8l3.207 2.96 2.694-1.586Zm-3.595 2.116L7.583 8.68 1.03 14.73c.201 1.029 1.36 1.61 2.303 1.055l7.294-4.295ZM1 13.396V2.603L6.846 8 1 13.396ZM1.03 1.27l6.553 6.05 3.044-2.81L3.333.215C2.39-.341 1.231.24 1.03 1.27Z" />
-              </svg> Download</button>
-          </div>
-        </div>
-      </div>
+    <!-- Log Item Usage -->
+    <div class="card p-4 shadow-sm mb-4">
+        <h3 class="text-center mb-3">Log Item Usage</h3>
+        <form class="row g-3" id="logForm">
+            <div class="col-md-4">
+                <select class="form-select" id="logCategory" required>
+                    <option value="">Select Category</option>
+                    {% for category, items in grouped_items.items() %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="logItem" name="item" required disabled>
+                    <option value="">Select Item</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input class="form-control" name="quantity" placeholder="Quantity Used" required type="number" min="1"/>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">Log</button>
+            </div>
+            <div class="col-12">
+                <small id="logItemDetails" class="text-muted"></small>
+            </div>
+        </form>
     </div>
 
-  </section>
-  <!-- Features -->
-  <section id="features">
-    <div class="container mt-5">
-      <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
-        <div class="col d-flex align-items-start">
-          <div
-            class="icon-square text-body-emphasis bg-body-secondary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
-            <svg xmlns="http://www.w3.org/2000/svg" height="30" fill="currentColor" class="bi bi-check2-circle"
-            viewBox="0 0 16 16">
-            <path
-              d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z" />
-            <path
-              d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z" />
-          </svg>
-        </div>
-        <div>
-          <h3 class="fs-2">Easy To Use!</h3>
-          <p>So easy your lazy ass cat can do it!</p>
-        </div>
-      </div>
-      <div class="col d-flex align-items-start">
-        <div
-            class="icon-square text-body-emphasis bg-body-secondary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
-            <svg xmlns="http://www.w3.org/2000/svg" height="30" fill="currentColor" class="bi bi-mortarboard"
-              viewBox="0 0 16 16">
-              <path
-                d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917l-7.5-3.5ZM8 8.46 1.758 5.965 8 3.052l6.242 2.913L8 8.46Z" />
-              <path
-                d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466 4.176 9.032Zm-.068 1.873.22-.748 3.496 1.311a.5.5 0 0 0 .352 0l3.496-1.311.22.748L8 12.46l-3.892-1.556Z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="fs-2">Elite Clientele.</h3>
-            <p>We have all the cats! All the greatest pussy!</p>
-          </div>
-        </div>
-        <div class="col d-flex align-items-start">
-          <div
-            class="icon-square text-body-emphasis bg-body-secondary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
-            <svg xmlns="http://www.w3.org/2000/svg" height="30" fill="currentColor" class="bi bi-arrow-through-heart"
-              viewBox="0 0 16 16">
-              <path fill-rule="evenodd"
-                d="M2.854 15.854A.5.5 0 0 1 2 15.5V14H.5a.5.5 0 0 1-.354-.854l1.5-1.5A.5.5 0 0 1 2 11.5h1.793l.53-.53c-.771-.802-1.328-1.58-1.704-2.32-.798-1.575-.775-2.996-.213-4.092C3.426 2.565 6.18 1.809 8 3.233c1.25-.98 2.944-.928 4.212-.152L13.292 2 12.147.854A.5.5 0 0 1 12.5 0h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.854.354L14 2.707l-1.006 1.006c.236.248.44.531.6.845.562 1.096.585 2.517-.213 4.092-.793 1.563-2.395 3.288-5.105 5.08L8 13.912l-.276-.182a21.86 21.86 0 0 1-2.685-2.062l-.539.54V14a.5.5 0 0 1-.146.354l-1.5 1.5Zm2.893-4.894A20.419 20.419 0 0 0 8 12.71c2.456-1.666 3.827-3.207 4.489-4.512.679-1.34.607-2.42.215-3.185-.817-1.595-3.087-2.054-4.346-.761L8 4.62l-.358-.368c-1.259-1.293-3.53-.834-4.346.761-.392.766-.464 1.845.215 3.185.323.636.815 1.33 1.519 2.065l1.866-1.867a.5.5 0 1 1 .708.708L5.747 10.96Z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="fs-2">Guaranteed to work.</h3>
-            <p>Find the love of your cat's life or your money back.</p>
-
-          </div>
-        </div>
-      </div>
+    <!-- Restock Items -->
+    <div class="card p-4 shadow-sm mb-4">
+        <h3 class="text-center mb-3">Restock Items</h3>
+        <form class="row g-3" id="addItemForm">
+            <div class="col-md-4">
+                <select class="form-select" id="restockCategory" required>
+                    <option value="">Select Category</option>
+                    {% for category, items in grouped_items.items() %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="restockItem" name="item" required disabled>
+                    <option value="">Select Item</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input class="form-control" name="stock" placeholder="Restock amount" required type="number" min="1"/>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100" type="submit">Add</button>
+            </div>
+            <div class="col-12">
+                <small id="restockItemDetails" class="text-muted"></small>
+            </div>
+        </form>
     </div>
 
-
-  </section>
-  <!-- Testimonial -->
-  <div class="position-relative p-5 text-center text-muted bg-body border border-dashed rounded-5">
-
-    <svg class="bi mt-5 mb-3" width="40" height="48"><use xlink:href="#check2-circle"></use></svg>
-    <h1 class="text-body-emphasis"></h1>
-      <h2>"Thanks to our state of the art Puss-Prowling software.</h2>
-       <h2>We always know where the best puss is at!"</h2>
-      <img src="static/images/pimp.jpg">
-      <p>"Onyx Da 'OG-Tripple OG' Puss Connoisseur"</p>
-      <div class="logo">
-
-        <img src="static/images/techcrunch.png" height="30px">
-        <img src="static/images/bizinsider.png"height="30px">
-        <img src="static/images/tnw.png"height="30px">
-        <img src="static/images/mashable.png"height="30px">
-      </div>
-  </div>
-  </section>
-  <!-- Pricing -->
-  <section id="pricing">
-    <div class="container py-3">
-      <header>
-
-        <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
-          <h1 class="display-4 fw-normal text-body-emphasis">A plan for every cat's needs!</h1>
-          <p class="fs-5 text-body-secondary">With our three great packages, you are sure to find the right price for your cat!</p>
-        </div>
-      </header>
-
-      <main>
-        <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
-          <div class="col">
-            <div class="card mb-4 rounded-3 shadow-sm">
-              <div class="card-header py-3">
-                <h4 class="my-0 fw-normal">"Stray"</h4>
-              </div>
-              <div class="card-body">
-                <h1 class="card-title pricing-card-title">$0<small class="text-body-secondary fw-light">/mo</small></h1>
-                <ul class="list-unstyled mt-3 mb-4">
-                  <li>10 daily swipes</li>
-                  <li>2 cups of cat-nip</li>
-                  <li>1 can of tuna</li>
-                  <li>Online interactive Puss-Tracker</li>
-                </ul>
-                <button type="button" class="w-100 btn btn-lg btn-outline-primary">Sign up for free</button>
-              </div>
+    <!-- Add New Item-->
+    {% if user_role %}
+    <div class="container mt-4">
+        <h5>Add New Item</h5>
+        <form method="POST" action="{{ url_for('create_item') }}">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="item" placeholder="Item Name" required>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" class="form-control" name="stock" placeholder="Stock Amount" required min="1">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="category" placeholder="Category" required>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Add Item</button>
+                </div>
             </div>
-          </div>
-          <div class="col">
-            <div class="card mb-4 rounded-3 shadow-sm">
-              <div class="card-header py-3">
-                <h4 class="my-0 fw-normal">"Cat Daddy"</h4>
-              </div>
-              <div class="card-body">
-                <h1 class="card-title pricing-card-title">$15<small class="text-body-secondary fw-light">/mo</small></h1>
-                <ul class="list-unstyled mt-3 mb-4">
-                  <li>20 daily swipes</li>
-                  <li>half gallon of cat-nip</li>
-                  <li>4 slice of sandwhich meat & 1 can of tuna</li>
-                  <li>Online interactive Puss-Tracker + Puss-Alert</li>
-                </ul>
-                <button type="button" class="w-100 btn btn-lg btn-primary">Get started</button>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card mb-4 rounded-3 shadow-sm border-primary">
-              <div class="card-header py-3 text-bg-primary border-primary">
-                <h4 class="my-0 fw-normal">"King Of The Jungle"</h4>
-              </div>
-              <div class="card-body">
-                <h1 class="card-title pricing-card-title">$29<small class="text-body-secondary fw-light">/mo</small></h1>
-                <ul class="list-unstyled mt-3 mb-4">
-                  <li>Unlimited Daily Swipes</li>
-                  <li>1 full gallon of cat-nip</li>
-                  <li>1 whole salmon filet</li>
-                  <li>Unlimited access to Puss-Tracker,Puss-Alert and the "Super-Puss" cat-nip locator</li>
-                </ul>
-                <button type="button" class="w-100 btn btn-lg btn-primary">Contact us</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <h2 class="display-6 text-center mb-4">Compare plans</h2>
-
-        <div class="table-responsive">
-          <table class="table text-center">
-            <thead>
-              <tr>
-                <th style="width: 34%;"></th>
-                <th style="width: 22%;">Stray</th>
-                <th style="width: 22%;">Cat Daddy</th>
-                <th style="width: 22%;">King Of The Jungle</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row" class="text-start">swipes</th>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>10 daily swipes</td>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>20 daily swipes</td>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>Unlimited swipes</td>
-              </tr>
-              <tr>
-                <th scope="row" class="text-start">cat-nip</th>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>2 cups of cat-nip</td>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>Half gallon of cat-nip</td>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>1 gallon of cat-nip</td>
-              </tr>
-            </tbody>
-
-            <tbody>
-              <tr>
-                <th scope="row" class="text-start">food</th>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>1 can of tuna</td>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>4 slices of sandwhich meat & 1 can of tuna</td>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>1 whole salmon filet</td>
-              </tr>
-              <tr>
-                <th scope="row" class="text-start">app access</th>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>Puss-Tracker</td>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>Puss-Tracker & Puss-Alert</td>
-                <td><svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>Puss-Tracker,Puss-Alert & "Super-Puss"</td>
-              </tr>
-
-
-            </tbody>
-          </table>
-        </div>
-      </main>
-
-
+        </form>
     </div>
-  </section>
-  <!-- Footer -->
-  <section id="footer" class="gradient-background">
-    <footer class="pt-4 text-center pt-md-3 ">
-      <div class="row">
-        <div class="col-12 col-md">
-          <img class="mb-2" src="static/images/cat.jpg" alt="cat" width="100" height="100">
-          <small class="d-block mb-3 text-body-secondary">© Puss-Prowlers</small>
-        </div>
-        <div class="col-6 col-md">
-          <h5>Features</h5>
-          <ul class="list-unstyled text-small">
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Cool stuff</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Random feature</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Team feature</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Stuff for developers</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Another one</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Last time</a></li>
-          </ul>
-        </div>
-        <div class="col-6 col-md">
-          <h5>Resources</h5>
-          <ul class="list-unstyled text-small">
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Resource</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Resource name</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Another resource</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Final resource</a></li>
-          </ul>
-        </div>
-        <div class="col-6 col-md">
-          <h5>About</h5>
-          <ul class="list-unstyled text-small">
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Team</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Locations</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Privacy</a></li>
-            <li class="mb-1"><a class="link-secondary text-decoration-none" href="#">Terms</a></li>
-          </ul>
-        </div>
-      </div>
-    </footer>
-  </section>
+    {% endif %}
+
+    <!-- Admin Controls -->
+    {% if user_role == "Admin" %}
+    <div class="d-flex justify-content-center mt-4 flex-wrap gap-3">
+        <button class="btn btn-success" id="exportButton">Export Stock Data</button>
+        <a class="btn btn-primary" href="{{ url_for('register') }}">Register New User</a>
+        <a class="btn btn-secondary" href="/admin">Admin Dashboard</a>
+    </div>
+    {% endif %}
+
+
+<!-- Scripts -->
+<script>
+    // Handle Logging Usage
+    document.getElementById("logForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch("/log", { method: "POST", body: formData })
+            .then(response => response.json())
+            .then(data => { alert(data.message); location.reload(); });
+    });
+
+    // Handle Restocking Items
+    document.getElementById("addItemForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch("/add-item", { method: "POST", body: formData })
+            .then(response => response.json())
+            .then(data => { alert(data.message); location.reload(); });
+    });
+
+    // Dynamic Dropdowns - Logging Usage
+    document.getElementById("logCategory").addEventListener("change", function () {
+        const category = this.value;
+        const itemSelect = document.getElementById("logItem");
+        const itemDetails = document.getElementById("logItemDetails");
+        itemSelect.innerHTML = '<option value="">Select Item</option>';
+        itemSelect.disabled = true;
+        itemDetails.textContent = '';
+
+        if (category) {
+            fetch(`/api/items/${encodeURIComponent(category)}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.sort((a, b) => a.item.localeCompare(b.item));
+                    data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item.item;
+                        option.textContent = item.item;
+                        option.dataset.stock = item.stock;
+                        option.dataset.used = item.used;
+                        option.dataset.remaining = item.remaining;
+                        itemSelect.appendChild(option);
+                    });
+                    itemSelect.disabled = false;
+                });
+        }
+    });
+
+    document.getElementById("logItem").addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const used = selectedOption.dataset.used;
+        const remaining = selectedOption.dataset.remaining;
+        const itemDetails = document.getElementById("logItemDetails");
+        if (used !== undefined && remaining !== undefined) {
+            itemDetails.textContent = `Used: ${used}, Remaining: ${remaining}`;
+        } else {
+            itemDetails.textContent = '';
+        }
+    });
+
+
+
+    // Dynamic Dropdowns - Restocking
+    document.getElementById("restockCategory").addEventListener("change", function () {
+        const category = this.value;
+        const itemSelect = document.getElementById("restockItem");
+        const itemDetails = document.getElementById("restockItemDetails");
+        itemSelect.innerHTML = '<option value="">Select Item</option>';
+        itemSelect.disabled = true;
+        itemDetails.textContent = '';
+
+        if (category) {
+            fetch(`/api/items/${encodeURIComponent(category)}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        data.sort((a, b) => a.item.localeCompare(b.item));
+                        const option = document.createElement("option");
+                        option.value = item.item;
+                        option.textContent = item.item;
+                        option.dataset.stock = item.stock;
+                        option.dataset.used = item.used;
+                        option.dataset.remaining = item.remaining;
+                        itemSelect.appendChild(option);
+                    });
+                    itemSelect.disabled = false;
+                });
+        }
+    });
+
+    document.getElementById("restockItem").addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const used = selectedOption.dataset.used;
+        const remaining = selectedOption.dataset.remaining;
+        const itemDetails = document.getElementById("restockItemDetails");
+        if (used !== undefined && remaining !== undefined) {
+            itemDetails.textContent = `Used: ${used}, Remaining: ${remaining}`;
+        } else {
+            itemDetails.textContent = '';
+        }
+    });
+
+    // Charts
+    fetch("/report/most-used-data")
+        .then(response => response.json())
+        .then(data => {
+            new Chart(document.getElementById("mostUsedChart"), {
+                type: "bar",
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{ label: "Most Used Items", data: Object.values(data), backgroundColor: "rgba(75, 192, 192, 0.2)", borderColor: "rgba(75, 192, 192, 1)", borderWidth: 1 }]
+                }
+            });
+        });
+
+    let usageTrendsChart;
+    function fetchUsageTrendsChart() {
+        fetch("/report/usage-trends-data")
+            .then(response => response.json())
+            .then(data => {
+                if (Object.keys(data).length === 0) {
+                    console.warn("No data available for Usage Trends Over Time");
+                    return;
+                }
+                const canvasContainer = document.getElementById("usageTrendsChartContainer");
+                canvasContainer.innerHTML = '<canvas id="usageTrendsChart"></canvas>';
+                const ctx = document.getElementById("usageTrendsChart").getContext("2d");
+                if (usageTrendsChart) {
+                    usageTrendsChart.destroy();
+                }
+                let allDates = new Set();
+                for (let item in data) {
+                    Object.keys(data[item]).forEach(date => allDates.add(date));
+                }
+                let sortedDates = Array.from(allDates).sort();
+                let datasets = [];
+                for (let item in data) {
+                    let itemData = sortedDates.map(date => data[item][date] || 0);
+                    datasets.push({
+                        label: item,
+                        data: itemData,
+                        borderWidth: 2,
+                        fill: false,
+                        borderColor: getRandomColor(),
+                        backgroundColor: getRandomColor()
+                    });
+                }
+                usageTrendsChart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: sortedDates,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { title: { display: true, text: "Date" } },
+                            y: { title: { display: true, text: "Quantity Used" } }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error("Error loading Usage Trends data:", error));
+    }
+    function getRandomColor() {
+        return `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`;
+    }
+    fetchUsageTrendsChart();
+
+    fetch("/report/employee-usage-data")
+        .then(response => response.json())
+        .then(data => {
+            new Chart(document.getElementById("employeeUsageChart"), {
+                type: "bar",
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{ label: "Employee Usage", data: Object.values(data), backgroundColor: "rgba(255, 99, 132, 0.2)", borderColor: "rgba(255, 99, 132, 1)", borderWidth: 1 }]
+                }
+            });
+        });
+
+    // Export button
+    document.getElementById("exportButton").addEventListener("click", function () {
+        window.location.href = "/export";
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

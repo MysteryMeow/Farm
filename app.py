@@ -116,7 +116,7 @@ def index():
         items.sort(key=lambda x: x.item.lower())
 
     grouped_items = dict(sorted(grouped_items.items()))
-    return render_template("index.html", grouped_items=grouped_items, user_role=current_user.role)
+    return render_template("inventory.html", grouped_items=grouped_items, user_role=current_user.role)
 
 @app.route('/create_item', methods=['POST'])
 @login_required
@@ -170,7 +170,7 @@ def create_item():
 @app.route("/")
 @login_required
 def inventory():
-    return render_template("inventory.html", user_role=current_user.role)
+    return render_template("index.html", user_role=current_user.role)
 
 @app.route("/silly")
 @login_required
