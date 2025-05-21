@@ -171,6 +171,11 @@ def create_item():
 @login_required
 def inventory():
     return render_template("inventory.html", user_role=current_user.role)
+
+@app.route("/silly")
+@login_required
+def inventory():
+    return render_template("silly.html", user_role=current_user.role)
 @app.route("/map")
 @login_required
 def map_view():
