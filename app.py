@@ -169,7 +169,7 @@ def create_item():
 
 @app.route("/")
 @login_required
-def main():
+def index():
     return render_template("index.html", user_role=current_user.role)
 
 @app.route("/silly")
@@ -258,6 +258,7 @@ def get_items_by_category(category):
         "used": item.used,
         "remaining": item.remaining
     } for item in items])
+
 @app.route("/log", methods=["POST"])
 @login_required
 def log_usage():
@@ -292,8 +293,6 @@ def log_usage():
         "success": True,
         "message": f"{quantity_used} units of {item_name} used by {current_user.username}."
     })
-
-
 
 @app.route("/add-item", methods=["POST"])
 @login_required
