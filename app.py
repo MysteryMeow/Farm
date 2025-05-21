@@ -101,7 +101,7 @@ admin.add_view(AdminModelView(Plot, db.session))
 # ------------------------------------------------------------------------------
 # Routes
 # ------------------------------------------------------------------------------
-@app.route("/")
+@app.route("/inventory")
 @login_required
 def index():
     stocks = Stock.query.all()
@@ -167,7 +167,7 @@ def create_item():
 
     return redirect(url_for('index'))
 
-@app.route("/inventory")
+@app.route("/")
 @login_required
 def inventory():
     return render_template("inventory.html", user_role=current_user.role)
