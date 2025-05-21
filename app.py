@@ -167,8 +167,10 @@ def create_item():
 
     return redirect(url_for('index'))
 
-
-
+@app.route("/inventory")
+@login_required
+def inventory():
+    return render_template("inventory.html", user_role=current_user.role)
 @app.route("/map")
 @login_required
 def map_view():
