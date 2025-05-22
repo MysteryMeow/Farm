@@ -1,34 +1,128 @@
 body {
-    font-family: Arial, sans-serif;
-}
-h1 {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f3ef;
+    background-image: url('static/images/soil-texture.jpg');
+    background-size: cover;
+    background-attachment: fixed;
     color: #333;
+    line-height: 1.6;
 }
+
+h1, h2, h3, h4, h5 {
+    color: #4a4a2e;
+}
+
+a {
+    color: #6c8c3b;
+    text-decoration: none;
+}
+a:hover {
+    color: #8cbf4d;
+    text-decoration: underline;
+}
+
+.navbar {
+    background-image: url('static/images/wood-texture.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-bottom: 2px solid #4a4a2e;
+}
+
+.navbar-brand, .nav-link {
+    color: #fff !important;
+    font-weight: bold;
+}
+
+.nav-link.active {
+    text-decoration: underline;
+}
+
+.btn-success {
+    background-color: #6c8c3b;
+    border-color: #6c8c3b;
+}
+.btn-success:hover {
+    background-color: #5a7631;
+    border-color: #5a7631;
+}
+
+.btn-outline-success {
+    color: #6c8c3b;
+    border-color: #6c8c3b;
+}
+.btn-outline-success:hover {
+    background-color: #6c8c3b;
+    color: white;
+}
+
+.card {
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.card-header {
+    background-color: #f0f0ea;
+    font-weight: bold;
+    color: #3a3a2a;
+}
+
+footer {
+    background-color: #3a3a2a;
+    color: #eee;
+}
+
 .gradient-background {
-  background: linear-gradient(300deg, #00bfff, #ff4c68, #ef8172);
-  background-size: 180% 180%;
-  animation: gradient-animation 18s ease infinite;
-  }
+    background: linear-gradient(300deg, #a8c686, #d2b48c, #f0e68c);
+    background-size: 180% 180%;
+    animation: gradient-animation 18s ease infinite;
+}
 
 @keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .icon-square {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    background-color: #d2b48c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a4a2e;
 }
 
-.profile-img {
-  height: 100px;
-  border-radius: 50%;
+.icon-square i {
+    font-size: 1.5rem;
+}
+
+.profile-img, img.rounded {
+    height: 100px;
+    border-radius: 50%;
+}
+
+section {
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+.farm-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.icon-row img {
+    width: 48px;
+    margin: 10px;
+    filter: drop-shadow(1px 1px 1px #aaa);
 }
