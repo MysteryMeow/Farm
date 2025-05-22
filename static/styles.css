@@ -1,7 +1,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f3ef;
-    background-image: url('..images/soil-texture.jpg');
+    background-image: url('images/soil-texture.jpg');
     background-size: cover;
     background-attachment: fixed;
     color: #333;
