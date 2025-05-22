@@ -22,7 +22,7 @@ a:hover {
 }
 
 .navbar {
-    background-image: url('../images/wood-texture.jpg');
+    background-image: url('images/wood-texture.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     border-bottom: 2px solid #4a4a2e;
