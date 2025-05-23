@@ -51,30 +51,6 @@
     <p class="lead">Your digital homestead dashboard — manage, grow, thrive.</p>
   </div>
 
-  <div class="container my-5">
-    <div class="row text-center mb-4">
-      <div class="col-md-2 col-4 feature-box">
-        <img src="{{ url_for('static', filename='icons/map.png') }}" alt="Map Icon">
-        <p>Interactive Map</p>
-      </div>
-      <div class="col-md-2 col-4 feature-box">
-        <img src="{{ url_for('static', filename='icons/seeds.png') }}" alt="Seeds Icon">
-        <p>Crop Inventory</p>
-      </div>
-      <div class="col-md-2 col-4 feature-box">
-        <img src="{{ url_for('static', filename='icons/list.png') }}" alt="List Icon">
-        <p>Project Lists</p>
-      </div>
-      <div class="col-md-2 col-4 feature-box">
-        <img src="{{ url_for('static', filename='icons/chart.png') }}" alt="Chart Icon">
-        <p>Usage Charts</p>
-      </div>
-      <div class="col-md-2 col-4 feature-box">
-        <img src="{{ url_for('static', filename='icons/sunflower.png') }}" alt="Sunflower Icon">
-        <p>Just for Fun</p>
-      </div>
-    </div>
-
     <div class="login-wrapper">
       <h3 class="text-center mb-4">Log in to your Homestead</h3>
       {% with messages = get_flashed_messages(with_categories=true) %}
