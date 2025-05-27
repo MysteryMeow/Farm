@@ -440,3 +440,26 @@ def randomize_plots():
     db.session.commit()
     flash("All plots randomized!", "info")
     return redirect(url_for("plot_manager"))
+@app.route("/update-plot/<int:plot_id>", methods=["POST"])
+@login_required
+def update_plot(plot_id):
+    data = request.get_json()
+    crop = data.get("crop", "").strip()
+    status = data.get("status", "").strip()
+
+    if not status:
+        return jsonify({"success": False, "message": "Status is required."})
+
+    plot = Plot.query.get(plot_id)
+    if not plot:
+        return jsonify({"success": False, "message": f"Plot #{plot_id} not found."})
+
+    plot.crop = crop if crop else None
+    plot.status = status
+
+    try:
+        db.session.commit()
+        return jsonify({"success": True, "message": f"Plot #{plot_id} updated."})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Error: {str(e)}"})
