@@ -389,3 +389,54 @@ def update_plot(plot_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "message": f"Error: {str(e)}"})
+from random import choice
+
+@app.route("/admin/plot-manager")
+@login_required
+def plot_manager():
+    if current_user.role != "Admin":
+        return "Unauthorized", 403
+    return render_template("plot_manager.html")
+
+@app.route("/admin/add-plots", methods=["POST"])
+@login_required
+def add_plots():
+    if current_user.role != "Admin":
+        return "Unauthorized", 403
+
+    start = int(request.form.get("start", 0))
+    end = int(request.form.get("end", 0))
+
+    for i in range(start, end + 1):
+        if not Plot.query.filter_by(plot_number=i).first():
+            db.session.add(Plot(plot_number=i))
+    db.session.commit()
+    flash(f"Added plots {start} to {end}", "success")
+    return redirect(url_for("plot_manager"))
+
+@app.route("/admin/reset-plots", methods=["POST"])
+@login_required
+def reset_plots():
+    if current_user.role != "Admin":
+        return "Unauthorized", 403
+    db.session.query(Plot).delete()
+    db.session.commit()
+    flash("All plots deleted!", "danger")
+    return redirect(url_for("plot_manager"))
+
+@app.route("/admin/randomize-plots", methods=["POST"])
+@login_required
+def randomize_plots():
+    if current_user.role != "Admin":
+        return "Unauthorized", 403
+
+    crops = ["Corn", "Tomato", "Carrot", "Pumpkin", "Sunflower", "Beans", "Lettuce", "Wheat"]
+    statuses = ["Planted", "Needs Water", "Harvest Ready", "Empty"]
+
+    plots = Plot.query.all()
+    for plot in plots:
+        plot.crop = choice(crops)
+        plot.status = choice(statuses)
+    db.session.commit()
+    flash("All plots randomized!", "info")
+    return redirect(url_for("plot_manager"))
