@@ -47,7 +47,19 @@
 <div class="container mt-4 text-center">
     <h1 class="mb-3">Farm Overview Map</h1>
     <p class="text-muted">Click on a plot to view or edit its crop and status.</p>
+
     <div class="farm-grid">
+    {% for plot in plots %}
+    <div
+        class="farm-plot status-{{ plot.status | replace(' ', '-') }}"
+        data-id="{{ plot.id }}"
+        data-crop="{{ plot.crop }}"
+        data-status="{{ plot.status }}"
+        onclick="openPlotModal('{{ plot.id }}', '{{ plot.crop }}', '{{ plot.status }}')">
+        {{ plot.crop }}
+    </div>
+    {% endfor %}
+
         {% for plot in plots %}
         <div
             class="farm-plot status-{{ plot.status.replace(' ', '-') }}"
@@ -130,5 +142,44 @@ document.getElementById('plotForm').addEventListener('submit', function(e) {
     });
 });
 </script>
+
+<script>
+function openPlotModal(plotNumber, crop, status) {
+    document.getElementById('plotNumberField').value = plotNumber;
+    document.getElementById('cropField').value = crop;
+    document.getElementById('statusField').value = status;
+    var modal = new bootstrap.Modal(document.getElementById('plotModal'));
+    modal.show();
+}
+
+document.getElementById('plotForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const plotNumber = document.getElementById('plotNumberField').value;
+    const crop = document.getElementById('cropField').value;
+    const status = document.getElementById('statusField').value;
+
+    fetch(`/update-plot/${plotNumber}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ crop: crop, status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const plotCell = document.querySelector(`.farm-plot[data-id="${plotNumber}"]`);
+            plotCell.dataset.crop = crop;
+            plotCell.dataset.status = status;
+            plotCell.className = `farm-plot status-${status.replace(' ', '-')}`;
+            plotCell.innerHTML = crop;
+
+            bootstrap.Modal.getInstance(document.getElementById('plotModal')).hide();
+        } else {
+            alert('Failed to update plot.');
+        }
+    });
+});
+</script>
+
 </body>
 </html>
