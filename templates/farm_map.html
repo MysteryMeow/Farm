@@ -51,10 +51,10 @@
         {% for plot in plots %}
         <div
             class="farm-plot status-{{ plot.status.replace(' ', '-') }}"
-            data-plot="{{ plot.id }}"
+            data-plot="{{ plot.plot_number }}"
             data-crop="{{ plot.crop or 'None' }}"
             data-status="{{ plot.status }}"
-            onclick="openPlotModal({{ plot.id }}, '{{ plot.crop or 'None' }}', '{{ plot.status }}', {{ plot.plot_number }})">
+            onclick="openPlotModal({{ plot.plot_number }}, '{{ plot.crop or 'None' }}', '{{ plot.status }}')">
             {{ plot.plot_number }}
         </div>
         {% endfor %}
@@ -71,7 +71,7 @@
             </div>
             <div class="modal-body">
                 <form id="plotForm">
-                    <input type="hidden" id="plotIdField">
+                    <input type="hidden" id="plotNumberField">
                     <div class="mb-3">
                         <label for="cropField" class="form-label">Crop</label>
                         <input type="text" class="form-control" id="cropField">
@@ -94,11 +94,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function openPlotModal(plotId, crop, status, displayNumber) {
-    document.getElementById('plotIdField').value = plotId;
+function openPlotModal(plotNumber, crop, status) {
+    document.getElementById('plotNumberField').value = plotNumber;
     document.getElementById('cropField').value = crop;
     document.getElementById('statusField').value = status;
-    document.getElementById('plotModalLabel').textContent = "Plot #" + displayNumber + " Details";
     var modal = new bootstrap.Modal(document.getElementById('plotModal'));
     modal.show();
 }
@@ -106,11 +105,11 @@ function openPlotModal(plotId, crop, status, displayNumber) {
 document.getElementById('plotForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const plotId = document.getElementById('plotIdField').value;
+    const plotNumber = document.getElementById('plotNumberField').value;
     const crop = document.getElementById('cropField').value;
     const status = document.getElementById('statusField').value;
 
-    fetch(`/update-plot/${plotId}`, {
+    fetch(`/update-plot/${plotNumber}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ crop: crop, status: status })
@@ -118,14 +117,15 @@ document.getElementById('plotForm').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const plotCell = document.querySelector(`.farm-plot[data-plot="${plotId}"]`);
+            const plotCell = document.querySelector(`.farm-plot[data-plot="${plotNumber}"]`);
             plotCell.dataset.crop = crop;
             plotCell.dataset.status = status;
             plotCell.className = `farm-plot status-${status.replace(' ', '-')}`;
+            plotCell.innerHTML = plotNumber;
 
             bootstrap.Modal.getInstance(document.getElementById('plotModal')).hide();
         } else {
-            alert(data.message || 'Failed to update plot.');
+            alert('Failed to update plot.');
         }
     });
 });
