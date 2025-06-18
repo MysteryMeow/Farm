@@ -78,7 +78,8 @@
         data-plot="{{ plot.id }}"
         data-crop="{{ plot.crop or 'None' }}"
         data-status="{{ plot.status }}"
-        onclick="openPlotModal({{ plot.id }}, '{{ plot.crop or 'None' }}', '{{ plot.status }}')"
+        onclick='openPlotModal({{ plot.plot_number }}, {{ plot.crop | tojson }}, {{ plot.status | tojson }})'
+
       >
         <div class="plot-label">
           <strong>#{{ plot.plot_number }}</strong><br>
