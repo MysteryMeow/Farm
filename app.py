@@ -29,12 +29,17 @@ migrate = Migrate(app, db)
 # ------------------------------------------------------------------------------
 class Plot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    plot_number = db.Column(db.Integer, unique=True, nullable=False)
-    crop = db.Column(db.String(100), nullable=True)
-    status = db.Column(db.String(50), default='Empty')
+    plot_number = db.Column(db.String(50), unique=True)
+    crop = db.Column(db.String(100))
+    status = db.Column(db.String(100))
+
+    # ✅ New fields for grid placement
+    row = db.Column(db.Integer)
+    col = db.Column(db.Integer)
 
     def __repr__(self):
-        return f"<Plot {self.plot_number} - {self.status}>"
+        return f"<Plot {self.plot_number} [{self.row}, {self.col}] - {self.status}>"
+
 
 
 class User(db.Model, UserMixin):
