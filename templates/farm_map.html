@@ -125,6 +125,9 @@ document.getElementById('plotForm').addEventListener('submit', function(e) {
             plotCell.className = `farm-plot status-${status.replace(' ', '-')}`;
             plotCell.innerHTML = crop;
 
+            // 💡 This part fixes the modal issue when re-clicking
+            plotCell.setAttribute('onclick', `openPlotModal('${plotNumber}', '${crop}', '${status}')`);
+
             bootstrap.Modal.getInstance(document.getElementById('plotModal')).hide();
         } else {
             alert('Failed to update plot.');
@@ -135,4 +138,3 @@ document.getElementById('plotForm').addEventListener('submit', function(e) {
 
 </body>
 </html>
-
