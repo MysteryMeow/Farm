@@ -93,6 +93,51 @@
     </div>
 </div>
 
+<button id="addPlotButton" class="btn btn-success mb-3">➕ Add Plot</button>
+
+<script>
+let addMode = false;
+
+document.getElementById('addPlotButton').onclick = () => {
+  addMode = !addMode;
+  document.getElementById('addPlotButton').textContent = addMode ? 'Click a Box to Add' : '➕ Add Plot';
+};
+
+document.querySelector('.farm-grid').addEventListener('click', e => {
+  if (!addMode) return;
+  if (!e.target.classList.contains('farm-plot')) {
+    const cells = Array.from(document.querySelectorAll('.farm-plot'));
+    const index = cells.indexOf(e.target);
+    const cols = 10; // grid width
+    const row = Math.floor(index / cols);
+    const col = index % cols;
+
+    openPlotModal(`${row}-${col}`, '', 'Empty');
+
+    document.getElementById('plotForm').onsubmit = async function(ev) {
+      ev.preventDefault();
+      const crop = document.getElementById('cropField').value;
+      const status = document.getElementById('statusField').value;
+      const resp = await fetch('/add-plot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ row, col, crop, status })
+      });
+      const data = await resp.json();
+      if (data.success) {
+        location.reload();
+      } else {
+        alert(data.message || 'Error adding plot');
+      }
+    };
+
+    addMode = false;
+    document.getElementById('addPlotButton').textContent = '➕ Add Plot';
+  }
+});
+</script>
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>

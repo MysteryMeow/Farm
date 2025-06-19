@@ -445,3 +445,30 @@ def randomize_plots():
     db.session.commit()
     flash("All plots randomized!", "info")
     return redirect(url_for("plot_manager"))
+
+@app.route('/add-plot', methods=['POST'])
+def add_plot():
+    data = request.get_json()
+    row = data.get('row')
+    col = data.get('col')
+    crop = data.get('crop', '')
+    status = data.get('status', 'Empty')
+
+    # Prevent duplicates
+    if Plot.query.filter_by(row=row, col=col).first():
+        return jsonify(success=False, message="Plot already exists at that location"), 400
+
+    new_plot = Plot(plot_number=f"{row}-{col}",
+                    crop=crop, status=status,
+                    row=row, col=col)
+    db.session.add(new_plot)
+    db.session.commit()
+
+    # Return its full data so the frontend can update gracefully
+    return jsonify(success=True, plot={
+        'id': new_plot.id,
+        'crop': new_plot.crop,
+        'status': new_plot.status,
+        'row': new_plot.row,
+        'col': new_plot.col
+    })
