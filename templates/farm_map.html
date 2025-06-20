@@ -55,7 +55,7 @@
       {% for col in range(10) %}
         {% set match = None %}
         {% for plot in plots %}
-          {% if plot.row == row and plot.col == col %}
+          {% if plot.row|int == row and plot.col|int == col %}
             {% set match = plot %}
           {% endif %}
         {% endfor %}
