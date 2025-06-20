@@ -1,182 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Farm Map Overview</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <style>
-    .farm-grid {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      grid-template-rows: repeat(10, 1fr);
-      gap: 4px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .farm-plot {
-      border: 1px solid #333;
-      aspect-ratio: 1 / 1;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-      color: white;
-      transition: transform 0.2s ease;
-    }
-    .farm-plot:hover {
-      transform: scale(1.05);
-    }
-    .status-Empty {
-      background-color: #9e9e9e;
-    }
-    .status-Planted {
-      background-color: #4caf50;
-    }
-    .status-Needs-Water {
-      background-color: #2196f3;
-    }
-    .status-Harvest-Ready {
-      background-color: #ff9800;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Farm Map</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
+    <style>
+        .farm-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 60px);
+            grid-auto-rows: 60px;
+            gap: 4px;
+        }
+        .farm-plot {
+            border: 1px solid #ccc;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .dragging {
+            opacity: 0.5;
+        }
+        .status-Planted { background-color: lightgreen; }
+        .status-Empty { background-color: #fff; }
+        .status-Harvested { background-color: khaki; }
+    </style>
 </head>
-<body>
-{% include 'navbar.html' %}
-
-<div class="container mt-4 text-center">
-  <h1 class="mb-3">Farm Overview Map</h1>
-  <p class="text-muted">Click on a plot to view or edit its crop and status.</p>
-
-  <button id="addPlotButton" class="btn btn-success mb-3">➕ Add Plot</button>
-
-  {# Create a 2D lookup table for fast access #}
-{% set plot_map = {} %}
-{% for plot in plots %}
-  {% set key = plot.row|string + "-" + plot.col|string %}
-  {% set _ = plot_map.update({key: plot}) %}
-{% endfor %}
-
-<div class="farm-grid">
-  {% for row in range(10) %}
-    {% for col in range(10) %}
-      {% set key = row|string + "-" + col|string %}
-      {% set match = plot_map.get(key) %}
-      {% if match %}
-        <div
-          class="farm-plot status-{{ match.status | replace(' ', '-') }}"
-          data-id="{{ match.id }}"
-          data-crop="{{ match.crop }}"
-          data-status="{{ match.status }}"
-          data-row="{{ match.row }}"
-          data-col="{{ match.col }}"
-          onclick="openPlotModal('{{ match.id }}', '{{ match.crop }}', '{{ match.status }}')">
-          {{ match.crop }}
-        </div>
-      {% else %}
-        <div class="farm-plot" data-row="{{ row }}" data-col="{{ col }}"></div>
-      {% endif %}
-    {% endfor %}
-  {% endfor %}
-</div>
-
-</div>
-
-<!-- Plot Modal -->
-<div class="modal fade" id="plotModal" tabindex="-1" aria-labelledby="plotModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="plotModalLabel">Plot Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="plotForm">
-          <input type="hidden" id="plotNumberField">
-          <div class="mb-3">
-            <label for="cropField" class="form-label">Crop</label>
-            <input type="text" class="form-control" id="cropField">
-          </div>
-          <div class="mb-3">
-            <label for="statusField" class="form-label">Status</label>
-            <select class="form-select" id="statusField">
-              <option value="Empty">Empty</option>
-              <option value="Planted">Planted</option>
-              <option value="Needs Water">Needs Water</option>
-              <option value="Harvest Ready">Harvest Ready</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-        </form>
-      </div>
+<body class="p-4">
+<div class="container">
+    <h1>Farm Map</h1>
+    <div class="farm-grid">
+        {% for row in range(10) %}
+            {% for col in range(10) %}
+                {% set plot = plots|selectattr("row", "equalto", row)|selectattr("col", "equalto", col)|first %}
+                {% if plot %}
+                    <div class="farm-plot status-{{ plot.status|replace(' ', '-') }}"
+                         data-id="{{ plot.id }}" data-plot="{{ plot.plot_number }}"
+                         data-row="{{ plot.row }}" data-col="{{ plot.col }}"
+                         data-crop="{{ plot.crop }}" data-status="{{ plot.status }}"
+                         onclick="openPlotModal('{{ plot.plot_number }}', '{{ plot.crop }}', '{{ plot.status }}')">
+                        {{ plot.plot_number }}
+                    </div>
+                {% else %}
+                    <div class="farm-plot" data-row="{{ row }}" data-col="{{ col }}"></div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
     </div>
-  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Modal -->
+<div class="modal fade" id="plotModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="plotForm" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Plot</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="plotNumberField">
+                <div class="mb-3">
+                    <label for="cropField" class="form-label">Crop</label>
+                    <input type="text" id="cropField" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="statusField" class="form-label">Status</label>
+                    <select id="statusField" class="form-select">
+                        <option>Empty</option>
+                        <option>Planted</option>
+                        <option>Harvested</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
-let addMode = false;
-
-document.getElementById('addPlotButton').onclick = () => {
-  addMode = !addMode;
-  document.getElementById('addPlotButton').textContent = addMode ? 'Click a Box to Add' : '➕ Add Plot';
-};
-
 function openPlotModal(plotNumber, crop, status) {
-  document.getElementById('plotNumberField').value = plotNumber;
-  document.getElementById('cropField').value = crop;
-  document.getElementById('statusField').value = status;
-  const modal = new bootstrap.Modal(document.getElementById('plotModal'));
-  modal.show();
+    document.getElementById('plotNumberField').value = plotNumber;
+    document.getElementById('cropField').value = crop;
+    document.getElementById('statusField').value = status;
+    var modal = new bootstrap.Modal(document.getElementById('plotModal'));
+    modal.show();
 }
 
-// For existing plots — updates crop and status
-document.getElementById('plotForm').addEventListener('submit', async function (e) {
-  e.preventDefault();
+document.getElementById('plotForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-  const plotNumber = document.getElementById('plotNumberField').value;
-  const crop = document.getElementById('cropField').value;
-  const status = document.getElementById('statusField').value;
+    const plotNumber = document.getElementById('plotNumberField').value;
+    const crop = document.getElementById('cropField').value;
+    const status = document.getElementById('statusField').value;
 
-  // Check if it's a new plot or existing
-  if (plotNumber.includes('-')) {
-    const [row, col] = plotNumber.split('-');
-    const resp = await fetch('/add-plot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ row, col, crop, status })
+    fetch(`/update-plot/${plotNumber}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ crop: crop, status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Failed to update plot.');
+        }
     });
-    const data = await resp.json();
-    if (data.success) location.reload();
-    else alert(data.message || 'Error adding plot.');
-  } else {
-    const resp = await fetch(`/update-plot/${plotNumber}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ crop, status })
-    });
-    const data = await resp.json();
-    if (data.success) location.reload();
-    else alert('Failed to update plot.');
-  }
 });
 
-// Handle clicking empty tiles when in add mode
-document.querySelector('.farm-grid').addEventListener('click', e => {
-  if (!addMode) return;
+$(function () {
+  $(".farm-plot").each(function () {
+    const el = $(this);
+    if (el.attr("data-id")) {
+      el.draggable({
+        revert: "invalid",
+        start: function () { el.addClass("dragging"); },
+        stop: function () { el.removeClass("dragging"); }
+      });
+    } else {
+      el.droppable({
+        accept: ".farm-plot[data-id]",
+        drop: function (event, ui) {
+          const source = ui.draggable;
+          const fromRow = source.data("row");
+          const fromCol = source.data("col");
+          const toRow = $(this).data("row");
+          const toCol = $(this).data("col");
+          const plotId = source.data("id");
 
-  const cell = e.target.closest('.farm-plot');
-  if (!cell || cell.dataset.id) return;
-
-  const row = cell.dataset.row;
-  const col = cell.dataset.col;
-  openPlotModal(`${row}-${col}`, '', 'Empty');
-
-  addMode = false;
-  document.getElementById('addPlotButton').textContent = '➕ Add Plot';
+          fetch(`/move-plot/${plotId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ row: toRow, col: toCol })
+          }).then(res => {
+            if (res.ok) location.reload();
+            else alert("Move failed!");
+          });
+        }
+      });
+    }
+  });
 });
 </script>
-
 </body>
 </html>

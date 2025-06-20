@@ -474,3 +474,24 @@ def add_plot():
     db.session.commit()
 
     return jsonify(success=True)
+
+@app.route('/move-plot/<int:plot_id>', methods=['POST'])
+def move_plot(plot_id):
+    data = request.get_json()
+    row = int(data.get('row'))
+    col = int(data.get('col'))
+
+    existing = Plot.query.filter_by(row=row, col=col).first()
+    if existing:
+        return jsonify(success=False, message="Target position already occupied"), 400
+
+    plot = Plot.query.get(plot_id)
+    if plot:
+        plot.row = row
+        plot.col = col
+        plot.plot_number = f"{row}-{col}"
+        db.session.commit()
+        return jsonify(success=True)
+    else:
+        return jsonify(success=False, message="Plot not found"), 404
+
