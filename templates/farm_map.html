@@ -50,37 +50,36 @@
 
   <button id="addPlotButton" class="btn btn-success mb-3">➕ Add Plot</button>
 
-  <div class="farm-grid">
-    {% for row in range(10) %}
-      {% for col in range(10) %}
-        {% set match = None %}
-        {% for plot in plots %}
-          {% if plot.row|int == row and plot.col|int == col %}
-            {% set match = plot %}
-          {% endif %}
-        {% endfor %}
+  {# Create a 2D lookup table for fast access #}
+{% set plot_map = {} %}
+{% for plot in plots %}
+  {% set key = plot.row|string + "-" + plot.col|string %}
+  {% set _ = plot_map.update({key: plot}) %}
+{% endfor %}
 
-        {% if match %}
-          <div
-            class="farm-plot status-{{ match.status | replace(' ', '-') }}"
-            data-id="{{ match.id }}"
-            data-crop="{{ match.crop }}"
-            data-status="{{ match.status }}"
-            data-row="{{ match.row }}"
-            data-col="{{ match.col }}"
-            onclick="openPlotModal('{{ match.id }}', '{{ match.crop }}', '{{ match.status }}')">
-            {{ match.crop }}
-          </div>
-        {% else %}
-          <div
-            class="farm-plot"
-            data-row="{{ row }}"
-            data-col="{{ col }}">
-          </div>
-        {% endif %}
-      {% endfor %}
+<div class="farm-grid">
+  {% for row in range(10) %}
+    {% for col in range(10) %}
+      {% set key = row|string + "-" + col|string %}
+      {% set match = plot_map.get(key) %}
+      {% if match %}
+        <div
+          class="farm-plot status-{{ match.status | replace(' ', '-') }}"
+          data-id="{{ match.id }}"
+          data-crop="{{ match.crop }}"
+          data-status="{{ match.status }}"
+          data-row="{{ match.row }}"
+          data-col="{{ match.col }}"
+          onclick="openPlotModal('{{ match.id }}', '{{ match.crop }}', '{{ match.status }}')">
+          {{ match.crop }}
+        </div>
+      {% else %}
+        <div class="farm-plot" data-row="{{ row }}" data-col="{{ col }}"></div>
+      {% endif %}
     {% endfor %}
-  </div>
+  {% endfor %}
+</div>
+
 </div>
 
 <!-- Plot Modal -->
